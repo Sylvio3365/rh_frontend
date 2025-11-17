@@ -47,6 +47,12 @@ const routes = [
     meta: { title: "Liste emp" },
   },
   {
+    path: "/fiche-utilisateur",
+    name: "FicheUtilisateur",
+    component: () => import("../views/utilisateur/FicheUtilisateur.vue"),
+    meta: { title: "Fiche Utilisateur" },
+  },
+  {
     path: "/employes/:id",
     name: "FicheEmploye",
     component: FicheEmploye,

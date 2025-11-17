@@ -54,10 +54,6 @@
                             </th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Statut
-                            </th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Actions
                             </th>
                         </tr>
@@ -95,12 +91,6 @@
                                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     {{ formatDate(employe.dateEntree) }}
                                 </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                    :class="getCouleurStatut(employe.statut)">
-                                    {{ employe.statut }}
-                                </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex gap-2">

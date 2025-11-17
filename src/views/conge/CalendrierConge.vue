@@ -460,6 +460,12 @@ export default {
             this.showModalDuree = false;
             this.eventSelectionne = null;
         },
+        handleDateClick(clickInfo) {
+            this.$router.push({
+                path: '/conges/nouveau',
+                query: { date: clickInfo.dateStr }
+            });
+        },
         handleEventDrop(dropInfo) {
             const event = dropInfo.event;
             const props = event.extendedProps;

@@ -37,21 +37,13 @@
               </template>
               <template v-slot:title> Gestion des Employés </template>
               <template v-slot:content>
-                <router-link to="/employes/liste"
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Liste des employés
-                </router-link>
                 <router-link to="/employes/ajouter"
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
                   Ajouter un employé
                 </router-link>
-                <router-link to="/employes/contrats"
+                <router-link to="/employes/liste"
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Contrats
-                </router-link>
-                <router-link to="/employes/evaluations"
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Évaluations
+                  Liste des employés
                 </router-link>
               </template>
             </menu-accordion>
@@ -74,10 +66,6 @@
                 <router-link to="/conges/calendrier"
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
                   Calendrier
-                </router-link>
-                <router-link to="/conges/parametres"
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Paramètres
                 </router-link>
               </template>
             </menu-accordion>
