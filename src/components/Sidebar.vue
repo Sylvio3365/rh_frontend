@@ -67,9 +67,9 @@
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
                   Demandes de congés
                 </router-link>
-                <router-link to="/conges/solde"
+                <router-link to="/conges/liste"
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Solde des congés
+                  Liste des congés
                 </router-link>
                 <router-link to="/conges/calendrier"
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
