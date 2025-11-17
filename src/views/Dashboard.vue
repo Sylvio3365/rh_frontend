@@ -1,611 +1,598 @@
 <template>
   <div class="dashboard p-4">
-    <!-- end nav -->
+    <!-- Navigation et en-tête -->
     <div class="mt-2 w-full">
       <div class="lg:flex grid-cols-1 lg:space-y-0 space-y-3 gap-5 justify-between">
         <div>
-          <p class="uppercase text-xs text-gray-700 font-semibold">Aperçu</p>
           <h1 class="text-2xl text-gray-900 dark:text-gray-200 font-medium">
             Tableau de Bord RH
           </h1>
         </div>
         <div class="flex gap-2">
           <button
-            class="bg-white dark:bg-gray-800 hover:border-gray-200 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 border rounded py-2 px-5">
-            Nouvelle vue
+            class="bg-white dark:bg-gray-800 hover:border-gray-200 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 border rounded py-2 px-4 text-sm">
+            Exporter PDF
           </button>
           <button
-            class="bg-primary border flex gap-2 text-white hover:bg-primary/80 dark:border-gray-700 rounded py-3 px-5">
-            <span class="icon text-2xl">
-              <Icon icon="ic:twotone-plus" />
-            </span>
-            <span class="text"> Nouveau Rapport</span>
+            class="bg-primary border flex gap-2 text-white hover:bg-primary/80 dark:border-gray-700 rounded py-2 px-4 text-sm">
+            <Icon icon="ic:twotone-plus" class="text-lg" />
+            Nouveau Rapport
           </button>
         </div>
       </div>
     </div>
 
-    <!-- grid wrapper card -->
-    <div class="wrapper-card grid lg:grid-cols-4 grid-cols-1 md:grid-cols-2 gap-2 mt-5">
-      <!-- card  -->
-      <div class="card bg-white dark:bg-gray-800 w-full rounded-md p-5 border dark:border-gray-700 flex">
-        <div class="p-2 max-w-sm">
-          <div class="bg-orange-200 rounded-full w-14 h-14 text-lg p-3 text-orange-600 mx-auto">
-            <span class="">
-              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="30px" height="30px"
-                preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24">
-                <path fill="currentColor"
-                  d="M10 16V8a2 2 0 0 1 2-2h9V5c0-1.1-.9-2-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-1h-9a2 2 0 0 1-2-2zm3-8c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h9V8h-9zm3 5.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5s1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" />
-              </svg>
-            </span>
-          </div>
-        </div>
-
-        <div class="block p-2 w-full">
-          <p class="font-semibold text-gray-900 dark:text-gray-200 text-xl">
-            156
-          </p>
-          <h2 class="font-normal text-gray-400 text-md mt-1">Employés Total</h2>
-        </div>
-      </div>
-      <!-- end card -->
-      <div class="card bg-white dark:bg-gray-800 w-full rounded-md p-5 border dark:border-gray-700 flex">
-        <div class="p-2 max-w-sm">
-          <div class="bg-green-200 rounded-full w-14 h-14 text-lg p-3 text-green-600 mx-auto">
-            <span class="">
-              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="30px" height="30px"
-                preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24">
-                <path fill="currentColor"
-                  d="M5 22h14a2 2 0 0 0 2-2V9a1 1 0 0 0-1-1h-3v-.777c0-2.609-1.903-4.945-4.5-5.198A5.005 5.005 0 0 0 7 7v1H4a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2zm12-12v2h-2v-2h2zM9 7c0-1.654 1.346-3 3-3s3 1.346 3 3v1H9V7zm-2 3h2v2H7v-2z" />
-              </svg>
-            </span>
-          </div>
-        </div>
-
-        <div class="block p-2 w-full">
-          <p class="font-semibold text-gray-900 dark:text-gray-200 text-xl">
-            23
-          </p>
-          <h2 class="font-normal text-gray-400 text-md mt-1">Congés ce mois</h2>
-        </div>
-      </div>
-      <!-- end card -->
-      <div class="card bg-white dark:bg-gray-800 w-full rounded-md p-5 border dark:border-gray-700 flex">
-        <div class="p-2 max-w-sm">
-          <div class="bg-red-200 rounded-full w-14 h-14 text-lg p-3 text-red-600 mx-auto">
-            <span class="">
-              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="30px" height="30px"
-                preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32">
-                <path fill="none"
-                  d="M8.007 24.93A4.996 4.996 0 0 1 13 20h6a4.996 4.996 0 0 1 4.993 4.93a11.94 11.94 0 0 1-15.986 0ZM20.5 12.5A4.5 4.5 0 1 1 16 8a4.5 4.5 0 0 1 4.5 4.5Z" />
-                <path fill="currentColor"
-                  d="M26.749 24.93A13.99 13.99 0 1 0 2 16a13.899 13.899 0 0 0 3.251 8.93l-.02.017c.07.084.15.156.222.239c.09.103.187.2.28.3c.28.304.568.596.87.87c.092.084.187.162.28.242c.32.276.649.538.99.782c.044.03.084.069.128.1v-.012a13.901 13.901 0 0 0 16 0v.012c.044-.031.083-.07.128-.1c.34-.245.67-.506.99-.782c.093-.08.188-.159.28-.242c.302-.275.59-.566.87-.87c.093-.1.189-.197.28-.3c.071-.083.152-.155.222-.24ZM16 8a4.5 4.5 0 1 1-4.5 4.5A4.5 4.5 0 0 1 16 8ZM8.007 24.93A4.996 4.996 0 0 1 13 20h6a4.996 4.996 0 0 1 4.993 4.93a11.94 11.94 0 0 1-15.986 0Z" />
-              </svg>
-            </span>
-          </div>
-        </div>
-
-        <div class="block p-2 w-full">
-          <p class="font-semibold text-gray-900 dark:text-gray-200 text-xl">
-            12
-          </p>
-          <h2 class="font-normal text-gray-400 text-md mt-1">
-            Postes Vacants
-          </h2>
-        </div>
-      </div>
-      <!-- end card -->
-      <div class="card bg-white dark:bg-gray-800 w-full rounded-md p-5 border dark:border-gray-700 flex">
-        <div class="p-2 max-w-sm">
-          <div class="bg-purple-200 rounded-full w-14 h-14 text-lg p-3 text-purple-600 mx-auto">
-            <span class="">
-              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="30px" height="30px"
-                preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16">
-                <g fill="currentColor">
-                  <path d="M15 13v1H1.5l-.5-.5V0h1v13h13Z" />
-                  <path
-                    d="M13 3.207L7.854 8.354h-.708L5.5 6.707l-3.646 3.647l-.708-.708l4-4h.708L7.5 7.293l5.146-5.147h.707l2 2l-.707.708L13 3.207Z" />
-                </g>
-              </svg>
-            </span>
-          </div>
-        </div>
-
-        <div class="block p-2 w-full">
-          <p class="font-semibold text-gray-900 dark:text-gray-200 text-xl">
-            89%
-          </p>
-          <h2 class="font-normal text-gray-400 text-md mt-1">Taux Présence</h2>
-        </div>
-      </div>
-      <!-- end card -->
-    </div>
-    <!-- end wrapper card -->
-    <div class="mt-2 lg:flex block lg:gap-2 relative">
-      <div class="bg-white dark:bg-gray-800 p-0 lg:w-3/4 w-full rounded-md box-border border dark:border-gray-700">
-        <div class="p-5 flex justify-between">
+    <!-- Cartes principales -->
+    <div class="wrapper-card grid lg:grid-cols-4 grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+      <!-- Carte Effectifs Total -->
+      <div class="card bg-white dark:bg-gray-800 w-full rounded-lg p-5 border dark:border-gray-700">
+        <div class="flex items-center justify-between">
           <div>
-            <h2 class="font-medium text-sm text-gray-800 dark:text-gray-200">
-              ÉVOLUTION DES EFFECTIFS
-            </h2>
-            <h1 class="font-semibold text-4xl text-gray-800 dark:text-gray-200">
-              15%
-            </h1>
-
-            <p class="text-gray-400 font-lexend font-normal">
-              Évolution du personnel par année
-            </p>
+            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">156</p>
+            <h2 class="font-normal text-gray-400 text-sm mt-1">Employés Total</h2>
           </div>
-
-          <div class="flex gap-5">
-            <span class="">
-              <h2 class="text-red-500 flex">
-                <span class="mr-2"> 5.9% </span><span>
-                  <Icon icon="akar-icons:arrow-down" />
-                </span>
-              </h2>
-            </span>
-            <span class="">
-              <h2 class="text-green-500 flex">
-                <span class="mr-2"> 27.9% </span><span>
-                  <Icon icon="akar-icons:arrow-up" />
-                </span>
-              </h2>
-            </span>
+          <div class="bg-orange-100 rounded-full w-12 h-12 flex items-center justify-center">
+            <Icon icon="mdi:account-group" class="text-orange-600 text-xl" />
           </div>
         </div>
-
-        <apexchart width="100%" height="260" type="area" :options="optionsArea" :series="seriesArea" :sparkline="{
-          enabled: true,
-        }"></apexchart>
-        <br />
-        <hr />
-        <div class="wrapper-button p-5 flex justify-between mt-3">
-          <select name="" id=""
-            class="dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 border max-w-lg px-4 py-3 block rounded-md text-gray-500 dark:text-gray-400">
-            <option value="">5 dernières années</option>
-          </select>
-          <button class="uppercase border-b border-red-600 text-red-600">
-            Rapport Effectifs
-          </button>
+        <div class="mt-3 flex justify-between text-xs">
+          <span class="text-green-600">+5% vs mois dernier</span>
+          <span class="text-gray-500">CDI: 89%</span>
         </div>
       </div>
-      <div class="bg-white dark:bg-gray-800 p-5 lg:mt-0 mt-4 lg:w-2/4 border dark:border-gray-700 rounded-md w-full">
-        <div class="">
-          <h2 class="text-lg font-semibold dark:text-gray-200">
-            DERNIÈRES RECRUTEMENTS
-          </h2>
-          <p class="text-gray-400">Liste des derniers recrutements</p>
+
+      <!-- Carte Turnover -->
+      <div class="card bg-white dark:bg-gray-800 w-full rounded-lg p-5 border dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">8.2%</p>
+            <h2 class="font-normal text-gray-400 text-sm mt-1">Taux de Turnover</h2>
+          </div>
+          <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center">
+            <Icon icon="mdi:account-switch" class="text-red-600 text-xl" />
+          </div>
         </div>
-        <perfect-scrollbar class="divide-y h-96 mt-5 dark:divide-gray-700">
-          <div class="p-3 w-full">
-            <div class="flex gap-5">
-              <div>
-                <img class="w-14 rounded-md" src="../assets/img/user1.png" alt="" />
-              </div>
-              <div class="mt-1">
-                <h2 class="dark:text-gray-200">Marie Dubois</h2>
-                <p class="text-sm dark:text-gray-500 text-gray-400">
-                  Développeuse Frontend
-                </p>
-                <p class="text-xs text-green-500">Embauche: 15/11/2024</p>
-              </div>
-            </div>
+        <div class="mt-3 flex justify-between text-xs">
+          <span class="text-red-600">+1.2% vs trimestre dernier</span>
+          <span class="text-gray-500">Objectif: 7%</span>
+        </div>
+      </div>
+
+      <!-- Carte Absentéisme -->
+      <div class="card bg-white dark:bg-gray-800 w-full rounded-lg p-5 border dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">4.1%</p>
+            <h2 class="font-normal text-gray-400 text-sm mt-1">Taux d'Absentéisme</h2>
           </div>
-          <div class="p-3 w-full">
-            <div class="flex gap-5">
-              <div>
-                <img class="w-14 rounded-md" src="../assets/img/user2.png" alt="" />
-              </div>
-              <div class="mt-1">
-                <h2 class="dark:text-gray-200">Pierre Martin</h2>
-                <p class="text-sm dark:text-gray-500 text-gray-400">
-                  Chef de Projet
-                </p>
-                <p class="text-xs text-green-500">Embauche: 10/11/2024</p>
-              </div>
-            </div>
+          <div class="bg-yellow-100 rounded-full w-12 h-12 flex items-center justify-center">
+            <Icon icon="mdi:calendar-remove" class="text-yellow-600 text-xl" />
           </div>
-          <div class="p-3 w-full">
-            <div class="flex gap-5">
-              <div>
-                <img class="w-14 rounded-md" src="../assets/img/user3.png" alt="" />
-              </div>
-              <div class="mt-1">
-                <h2 class="dark:text-gray-200">Sophie Laurent</h2>
-                <p class="text-sm dark:text-gray-500 text-gray-400">
-                  Responsable RH
-                </p>
-                <p class="text-xs text-green-500">Embauche: 05/11/2024</p>
-              </div>
-            </div>
+        </div>
+        <div class="mt-3 flex justify-between text-xs">
+          <span class="text-green-600">-0.3% vs mois dernier</span>
+          <span class="text-gray-500">Maladie: 3.2%</span>
+        </div>
+      </div>
+
+      <!-- Carte Ancienneté -->
+      <div class="card bg-white dark:bg-gray-800 w-full rounded-lg p-5 border dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">4.8 ans</p>
+            <h2 class="font-normal text-gray-400 text-sm mt-1">Ancienneté Moyenne</h2>
           </div>
-          <div class="p-3 w-full">
-            <div class="flex gap-5">
-              <div>
-                <img class="w-14 rounded-md" src="../assets/img/user4.png" alt="" />
-              </div>
-              <div class="mt-1">
-                <h2 class="dark:text-gray-200">Thomas Bernard</h2>
-                <p class="text-sm dark:text-gray-500 text-gray-400">
-                  Analyste Data
-                </p>
-                <p class="text-xs text-green-500">Embauche: 01/11/2024</p>
-              </div>
-            </div>
+          <div class="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center">
+            <Icon icon="mdi:clock-outline" class="text-blue-600 text-xl" />
           </div>
-          <div class="p-3 w-full">
-            <div class="flex gap-5">
-              <div>
-                <img class="w-14 rounded-md" src="../assets/img/user5.png" alt="" />
-              </div>
-              <div class="mt-1">
-                <h2 class="dark:text-gray-200">Julie Petit</h2>
-                <p class="text-sm dark:text-gray-500 text-gray-400">
-                  Designer UI/UX
-                </p>
-                <p class="text-xs text-green-500">Embauche: 28/10/2024</p>
-              </div>
-            </div>
-          </div>
-        </perfect-scrollbar>
+        </div>
+        <div class="mt-3 flex justify-between text-xs">
+          <span class="text-green-600">+6 mois vs 2023</span>
+          <span class="text-gray-500">Senior: >5 ans</span>
+        </div>
       </div>
     </div>
-    <div class="mt-2 lg:flex block lg:gap-2">
-      <div class="mt-2 bg-white dark:bg-gray-800 p-0 w-full rounded-md box-border border dark:border-gray-700">
-        <div class="head p-5">
-          <h2 class="font-bold text-lg text-gray-800 dark:text-gray-200">
-            45
-          </h2>
-          <p class="text-gray-400 font-lexend font-normal">
-            Congés en attente cette semaine
-          </p>
-          <span class="float-right">
-            <h2 class="text-green-500 -mt-12 flex">
-              <span class="mr-2"> 12.9% </span><span>
-                <Icon icon="akar-icons:arrow-up" />
-              </span>
-            </h2>
-          </span>
-        </div>
-        <div class="wrapper-chart mt-5 pr-2 pl-2">
-          <apexchart width="100%" height="380" type="bar" :options="optionsBar" :series="seriesBar"></apexchart>
-          <br />
-          <hr />
-          <div class="footer p-5">
-            <div class="wrapper-button flex justify-between mt-3">
-              <select name="" id=""
-                class="dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 border max-w-lg px-4 py-3 block rounded-md text-gray-500 dark:text-gray-400">
-                <option value="">7 derniers jours</option>
-              </select>
-              <button class="uppercase border-b border-red-600 text-red-600">
-                Rapport Congés
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="mt-2 bg-white dark:bg-gray-800 p-0 w-full rounded-md box-border border dark:border-gray-700">
-        <div class="head p-5">
-          <h2 class="font-bold text-lg text-gray-800 dark:text-gray-200">
-            23
-          </h2>
-          <p class="text-gray-400 font-lexend font-normal">Évaluations cette semaine</p>
 
-          <span class="float-right">
-            <h2 class="text-green-500 -mt-12 flex">
-              <span class="mr-2"> 8.9% </span><span>
-                <Icon icon="akar-icons:arrow-up" />
-              </span>
-            </h2>
-          </span>
-        </div>
-        <div class="wrapper-chart mt-5">
-          <apexchart width="100%" height="380" type="area" :options="optionsVisitor" :series="seriesVisitor">
+    <!-- Section Statistiques Démographiques -->
+    <div class="mt-6 grid lg:grid-cols-3 gap-6">
+      <!-- Répartition par Genre -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
+        <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Répartition par Genre</h3>
+        <div class="flex items-center justify-center">
+          <apexchart width="300" height="300" type="donut" :options="genderChart.options" :series="genderChart.series">
           </apexchart>
-          <br />
-          <hr />
-          <div class="footer p-5">
-            <div class="wrapper-button flex justify-between mt-3">
-              <select name="" id=""
-                class="dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-700 border max-w-lg px-4 py-3 block rounded-md text-gray-500 dark:text-gray-400">
-                <option value="">7 derniers jours</option>
-              </select>
-              <button class="uppercase border-b border-red-600 text-red-600">
-                Rapport Évaluations
-              </button>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div class="text-center">
+            <div class="flex items-center justify-center mb-2">
+              <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+              <span class="text-sm">Hommes</span>
+            </div>
+            <p class="font-semibold text-lg">58%</p>
+          </div>
+          <div class="text-center">
+            <div class="flex items-center justify-center mb-2">
+              <div class="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+              <span class="text-sm">Femmes</span>
+            </div>
+            <p class="font-semibold text-lg">42%</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Répartition par Âge -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
+        <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Pyramide des Âges</h3>
+        <apexchart width="100%" height="300" type="bar" :options="ageChart.options" :series="ageChart.series">
+        </apexchart>
+      </div>
+
+      <!-- Répartition par Type de Contrat -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
+        <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Types de Contrat</h3>
+        <apexchart width="100%" height="300" type="pie" :options="contractChart.options" :series="contractChart.series">
+        </apexchart>
+      </div>
+    </div>
+
+    <!-- Section Évolution des indicateurs -->
+    <div class="mt-6 grid lg:grid-cols-2 gap-6">
+      <!-- Évolution du Turnover -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
+        <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Évolution du Turnover</h3>
+        <apexchart width="100%" height="300" type="line" :options="turnoverTrend.options"
+          :series="turnoverTrend.series">
+        </apexchart>
+      </div>
+
+      <!-- Évolution des Effectifs -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
+        <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Évolution des Effectifs</h3>
+        <apexchart width="100%" height="300" type="area" :options="workforceTrend.options"
+          :series="workforceTrend.series">
+        </apexchart>
+      </div>
+    </div>
+
+    <!-- Section Alertes -->
+    <div class="mt-6 grid lg:grid-cols-2 gap-6">
+      <!-- Alertes Fin de Contrat -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold text-gray-900 dark:text-gray-200">Alertes Fin de Contrat</h3>
+          <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">5 alertes</span>
+        </div>
+        <div class="space-y-3">
+          <div v-for="alert in contractAlerts" :key="alert.id"
+            class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <div>
+              <p class="font-medium text-sm">{{ alert.employee }}</p>
+              <p class="text-xs text-gray-500">{{ alert.position }} • {{ alert.department }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-semibold text-red-600">{{ alert.daysLeft }} jours</p>
+              <p class="text-xs text-gray-500">Fin: {{ alert.endDate }}</p>
             </div>
           </div>
         </div>
       </div>
-      <div class="mt-2 bg-white dark:bg-gray-800 p-0 w-full rounded-md box-border border dark:border-gray-700">
-        <div class="head p-5">
-          <h2 class="font-bold text-lg text-gray-800 dark:text-gray-200">
-            156
-          </h2>
-          <p class="text-gray-400 font-lexend font-normal">
-            Répartition par département
-          </p>
+
+      <!-- Alertes Congés Non Pris -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold text-gray-900 dark:text-gray-200">Congés Non Pris</h3>
+          <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">12 employés</span>
         </div>
-
-        <div class="wrapper-chart mt-5">
-          <apexchart width="100%" height="380" type="pie" :options="optionsDonut" :series="seriesDonut"></apexchart>
-          <div class="p-3"></div>
-          <br />
-          <hr />
-          <div class="footer p-5">
-            <div class="wrapper-button flex justify-between mt-3">
-              <select name="" id=""
-                class="dark:bg-gray-800 dark:hover:bg-gray-700 border dark:border-gray-700 max-w-lg px-4 py-3 block rounded-md text-gray-500 dark:text-gray-400">
-                <option value="">Par département</option>
-              </select>
-
-              <button class="uppercase border-b border-red-600 text-red-600">
-                Rapport Effectifs
-              </button>
+        <div class="space-y-3">
+          <div v-for="leave in unusedLeaves" :key="leave.id"
+            class="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+            <div>
+              <p class="font-medium text-sm">{{ leave.employee }}</p>
+              <p class="text-xs text-gray-500">{{ leave.department }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-semibold text-orange-600">{{ leave.daysLeft }} jours</p>
+              <p class="text-xs text-gray-500">À utiliser avant {{ leave.deadline }}</p>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div class="mt-2 bg-white dark:bg-gray-800 p-5 w-full rounded-md box-border border dark:border-gray-700">
-      <h2 class="font-bold text-lg text-gray-800 dark:text-gray-200">
-        Dernières Transactions RH
-      </h2>
-      <p class="text-gray-400 font-lexend font-normal">
-        Liste des dernières opérations RH
-      </p>
-      <div class="wrapping-table mt-10">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 lg:overflow-auto overflow-x-scroll">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="uppercase px-6 py-3">
-                Opération
-              </th>
-              <th scope="col" class="uppercase px-6 py-3">
-                Date & Heure
-              </th>
-              <th scope="col" class="uppercase px-6 py-3">
-                Employé
-              </th>
-              <th scope="col" class="uppercase px-6 py-3">
-                Statut
-              </th>
+
+    <!-- Indicateurs par Service -->
+    <div class="mt-6 bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
+      <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Indicateurs par Service</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b dark:border-gray-600">
+              <th class="text-left py-3 font-medium">Service</th>
+              <th class="text-center py-3 font-medium">Effectif</th>
+              <th class="text-center py-3 font-medium">Turnover</th>
+              <th class="text-center py-3 font-medium">Absentéisme</th>
+              <th class="text-center py-3 font-medium">Ancienneté</th>
+              <th class="text-center py-3 font-medium">Budget Formation</th>
+              <th class="text-center py-3 font-medium">Satisfaction</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 odd:bg-white even:bg-gray-50"
-              v-for="items in tableTransaction" :key="items.transaction">
-              <td class="px-6 py-4">
-                {{ items.transaction }}
+            <tr v-for="dept in departmentStats" :key="dept.name"
+              class="border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700">
+              <td class="py-3">
+                <div class="flex items-center">
+                  <div class="w-2 h-2 rounded-full mr-2" :class="dept.color"></div>
+                  {{ dept.name }}
+                </div>
               </td>
-              <td class="px-6 py-4">
-                {{ items.datetime }}
-              </td>
-              <td class="px-6 py-4">
-                {{ items.employee }}
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-green-800 bg-green-300 px-3 py-1 rounded-md"
-                  v-if="items.statusTransaction == 'completed'">
-                  {{ items.statusTransaction }}
+              <td class="text-center py-3">{{ dept.employees }}</td>
+              <td class="text-center py-3">
+                <span
+                  :class="dept.turnover > 10 ? 'text-red-600' : dept.turnover > 7 ? 'text-orange-600' : 'text-green-600'">
+                  {{ dept.turnover }}%
                 </span>
-                <span class="text-purple-800 bg-purple-300 px-3 py-1 rounded-md"
-                  v-else-if="items.statusTransaction == 'progress'">
-                  {{ items.statusTransaction }}
+              </td>
+              <td class="text-center py-3">
+                <span :class="dept.absenteeism > 5 ? 'text-orange-600' : 'text-green-600'">
+                  {{ dept.absenteeism }}%
                 </span>
-                <span class="text-red-800 bg-red-300 px-3 py-1 rounded-md" v-else>
-                  {{ items.statusTransaction }}
+              </td>
+              <td class="text-center py-3">{{ dept.seniority }} ans</td>
+              <td class="text-center py-3">
+                <span :class="dept.budgetStatus === 'dépassé' ? 'text-red-600' : 'text-green-600'">
+                  {{ dept.budgetStatus }}
+                </span>
+              </td>
+              <td class="text-center py-3">
+                <span
+                  :class="dept.satisfaction >= 8 ? 'text-green-600' : dept.satisfaction >= 7 ? 'text-yellow-600' : 'text-red-600'">
+                  {{ dept.satisfaction }}/10
                 </span>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="wrapper-button flex justify-between mt-3">
-        <select name="" id=""
-          class="dark:bg-gray-800 dark:hover:bg-gray-700 border dark:border-gray-700 max-w-lg px-4 py-3 block rounded-md text-gray-500 dark:text-gray-400">
-          <option value="">7 derniers jours</option>
-        </select>
-        <button class="uppercase border-b border-red-600 text-red-600">
-          Rapport Opérations
-        </button>
-      </div>
     </div>
+
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
 import { Icon } from "@iconify/vue";
 
 export default {
-  name: "Dashboard",
+  name: "DashboardRH",
   data() {
     return {
-      // for more guide apexchart.js
-      // https://apexcharts.com/docs/chart-types/line-chart/
-
-      // chart data area
-      optionsArea: {
-        xaxis: {
-          categories: [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022],
-        },
-        fontFamily: "Segoe UI, sans-serif",
-        stroke: {
-          curve: "straight",
-        },
-        chart: {
-          toolbar: {
-            show: true,
+      // Données pour les graphiques démographiques
+      genderChart: {
+        series: [58, 42],
+        options: {
+          chart: {
+            type: 'donut',
           },
-          zoom: {
-            enabled: false,
+          labels: ['Hommes', 'Femmes'],
+          colors: ['#3B82F6', '#EC4899'],
+          legend: {
+            show: false
           },
-          sparkline: {
-            enabled: true,
-          },
-        },
-        markers: {
-          size: 0,
-        },
-        yaxis: {
-          show: false,
-        },
-        fill: {
-          type: "gradient",
-          gradient: {
-            shadeIntensity: 0,
-            opacityFrom: 0.2,
-            opacityTo: 0.5,
-            stops: [0, 90, 100],
-          },
-        },
+          dataLabels: {
+            enabled: false
+          }
+        }
       },
 
-      chart: {
-        fontFamily: "lexend, sans-serif",
+      ageChart: {
+        series: [
+          {
+            name: 'Hommes',
+            data: [8, 12, 15, 18, 16, 10, 6]
+          },
+          {
+            name: 'Femmes',
+            data: [7, 10, 14, 16, 14, 9, 5]
+          }
+        ],
+        options: {
+          chart: {
+            type: 'bar',
+            stacked: true
+          },
+          plotOptions: {
+            bar: {
+              horizontal: true,
+            },
+          },
+          colors: ['#3B82F6', '#EC4899'],
+          xaxis: {
+            categories: ['<25', '25-30', '31-35', '36-40', '41-45', '46-50', '>50']
+          },
+          legend: {
+            position: 'top'
+          }
+        }
       },
 
-      seriesArea: [
-        {
-          name: "Effectifs",
-          data: [30, 40, 45, 50, 49, 60, 70, 91],
-        },
-        {
-          name: "Effectifs (Période précédente)",
-          data: [20, 34, 45, 55, 79, 87, 90, 98],
-        },
-      ],
-      optionsBar: {
-        chart: {
-          toolbar: {
-            show: false,
+      contractChart: {
+        series: [78, 15, 7],
+        options: {
+          chart: {
+            type: 'pie',
           },
-          zoom: {
-            enabled: false,
-          },
-          sparkline: {
-            enabled: true,
-          },
-        },
-        legend: {
-          show: false,
-        },
-        xaxis: {
-          show: false,
-        },
-        yaxis: {
-          show: false,
-        },
-        colors: ["#4f46e5", "#DC2626"],
-        dataLabels: {
-          enabled: false,
-        },
-        stroke: {
-          curve: "straight",
-        },
+          labels: ['CDI', 'CDD', 'Alternance'],
+          colors: ['#10B981', '#F59E0B', '#8B5CF6'],
+          legend: {
+            position: 'bottom'
+          }
+        }
       },
 
-      seriesBar: [
-        {
-          name: "Congés approuvés",
-          data: [30, 40, 45, 50, 49, 60, 70, 91],
-        },
-        {
-          name: "Congés refusés",
-          data: [20, 34, 45, 55, 79, 87, 90, 98],
-        },
-      ],
-      optionsVisitor: {
-        chart: {
-          toolbar: {
-            show: false,
+      // Évolution du turnover
+      turnoverTrend: {
+        series: [{
+          name: 'Taux de turnover',
+          data: [6.8, 7.2, 8.1, 7.5, 8.2, 7.9, 8.2]
+        }],
+        options: {
+          chart: {
+            type: 'line',
+            height: 350
           },
-          zoom: {
-            enabled: false,
+          stroke: {
+            width: 3,
+            curve: 'smooth'
           },
-          sparkline: {
-            enabled: true,
+          xaxis: {
+            categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul']
           },
-        },
-        legend: {
-          show: false,
-        },
-        xaxis: {
-          show: false,
-        },
-        yaxis: {
-          show: false,
-        },
-        colors: ["#4f46e5"],
-        dataLabels: {
-          enabled: false,
-        },
-        fill: {
-          type: "gradient",
-          gradient: {
-            shadeIntensity: 0,
-            opacityFrom: 0,
-            opacityTo: 0.3,
-            stops: [0, 90, 100],
-          },
-        },
-        stroke: {
-          curve: "smooth",
-        },
+          colors: ['#EF4444'],
+          markers: {
+            size: 5
+          }
+        }
       },
 
-      seriesVisitor: [
-        {
-          name: "Évaluations",
-          data: [30, 40, 45, 50, 49, 60, 70, 91],
-        },
-      ],
-      optionsDonut: {
-        chart: {
-          type: "donut",
-        },
-        legend: false,
-        dataLabels: {
-          enabled: false,
-        },
-        labels: ["IT", "RH", "Commercial", "Marketing", "Production"],
+      // Évolution des effectifs
+      workforceTrend: {
+        series: [{
+          name: 'Effectifs',
+          data: [142, 145, 148, 150, 152, 154, 156]
+        }],
+        options: {
+          chart: {
+            type: 'area',
+            height: 350
+          },
+          stroke: {
+            width: 3,
+            curve: 'smooth'
+          },
+          xaxis: {
+            categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul']
+          },
+          colors: ['#3B82F6'],
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shadeIntensity: 1,
+              opacityFrom: 0.7,
+              opacityTo: 0.2,
+            }
+          }
+        }
       },
 
-      seriesDonut: [45, 12, 38, 25, 36],
-      tableTransaction: [
+      // Alertes fin de contrat
+      contractAlerts: [
         {
-          transaction: "Demande de congé approuvée",
-          datetime: "22 Nov 2024",
+          id: 1,
           employee: "Marie Dubois",
-          statusTransaction: "completed",
+          position: "Développeuse Frontend",
+          department: "IT",
+          endDate: "15/12/2024",
+          daysLeft: 15
         },
         {
-          transaction: "Nouvelle embauche",
-          datetime: "20 Nov 2024",
-          employee: "Pierre Martin",
-          statusTransaction: "completed",
-        },
-        {
-          transaction: "Évaluation en cours",
-          datetime: "18 Nov 2024",
-          employee: "Sophie Laurent",
-          statusTransaction: "progress",
-        },
-        {
-          transaction: "Demande de formation refusée",
-          datetime: "15 Nov 2024",
+          id: 2,
           employee: "Thomas Bernard",
-          statusTransaction: "cancelled",
+          position: "Analyste Data",
+          department: "Data",
+          endDate: "20/12/2024",
+          daysLeft: 20
         },
+        {
+          id: 3,
+          employee: "Julie Petit",
+          position: "Designer UI/UX",
+          department: "Design",
+          endDate: "25/12/2024",
+          daysLeft: 25
+        }
       ],
+
+      // Congés non pris
+      unusedLeaves: [
+        {
+          id: 1,
+          employee: "Pierre Martin",
+          department: "Commercial",
+          daysLeft: 12,
+          deadline: "31/12/2024"
+        },
+        {
+          id: 2,
+          employee: "Sophie Laurent",
+          department: "RH",
+          daysLeft: 8,
+          deadline: "31/12/2024"
+        },
+        {
+          id: 3,
+          employee: "Marc Dupont",
+          department: "IT",
+          daysLeft: 15,
+          deadline: "31/12/2024"
+        }
+      ],
+
+      // Postes ouverts
+      openPositions: [
+        {
+          id: 1,
+          title: "Développeur Fullstack",
+          department: "IT",
+          candidates: 24,
+          daysOpen: 15,
+          progress: 75,
+          urgency: "Élevée",
+          urgencyClass: "bg-red-100 text-red-800"
+        },
+        {
+          id: 2,
+          title: "Chef de Projet",
+          department: "IT",
+          candidates: 18,
+          daysOpen: 22,
+          progress: 60,
+          urgency: "Moyenne",
+          urgencyClass: "bg-orange-100 text-orange-800"
+        },
+        {
+          id: 3,
+          title: "Commercial B2B",
+          department: "Commercial",
+          candidates: 32,
+          daysOpen: 10,
+          progress: 45,
+          urgency: "Normale",
+          urgencyClass: "bg-blue-100 text-blue-800"
+        }
+      ],
+
+      // Formations à venir
+      upcomingTrainings: [
+        {
+          id: 1,
+          title: "Leadership & Management",
+          date: "15/12/2024",
+          participants: 12,
+          status: "confirmée"
+        },
+        {
+          id: 2,
+          title: "Cybersécurité Avancée",
+          date: "20/12/2024",
+          participants: 8,
+          status: "en attente"
+        },
+        {
+          id: 3,
+          title: "Intelligence Artificielle",
+          date: "05/01/2025",
+          participants: 15,
+          status: "confirmée"
+        }
+      ],
+
+      // Compétences critiques
+      criticalSkills: [
+        {
+          name: "Data Science",
+          department: "IT/Data",
+          gap: 3
+        },
+        {
+          name: "Cloud Architecture",
+          department: "IT",
+          gap: 2
+        },
+        {
+          name: "Marketing Digital",
+          department: "Marketing",
+          gap: 2
+        }
+      ],
+
+      // Statistiques par service
+      departmentStats: [
+        {
+          name: "IT",
+          employees: 45,
+          turnover: 12.5,
+          absenteeism: 3.2,
+          seniority: 3.8,
+          budgetStatus: "dépassé",
+          satisfaction: 8.7,
+          color: "bg-blue-500"
+        },
+        {
+          name: "Commercial",
+          employees: 38,
+          turnover: 8.2,
+          absenteeism: 2.1,
+          seniority: 4.2,
+          budgetStatus: "dans budget",
+          satisfaction: 8.2,
+          color: "bg-green-500"
+        },
+        {
+          name: "Marketing",
+          employees: 22,
+          turnover: 6.5,
+          absenteeism: 4.8,
+          seniority: 5.1,
+          budgetStatus: "dans budget",
+          satisfaction: 7.8,
+          color: "bg-purple-500"
+        },
+        {
+          name: "RH",
+          employees: 15,
+          turnover: 3.2,
+          absenteeism: 2.5,
+          seniority: 6.3,
+          budgetStatus: "dans budget",
+          satisfaction: 8.9,
+          color: "bg-pink-500"
+        },
+        {
+          name: "Production",
+          employees: 36,
+          turnover: 15.2,
+          absenteeism: 7.8,
+          seniority: 2.8,
+          budgetStatus: "dépassé",
+          satisfaction: 6.5,
+          color: "bg-orange-500"
+        }
+      ]
     };
-    // end chart data line
   },
   components: {
     Icon,
   },
-  mounted() { },
+  mounted() {
+    // Ici vous pouvez ajouter des appels API pour récupérer les données réelles
+  }
 };
 </script>
+
+<style scoped>
+.dashboard {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour le défilement personnalisé */
+.ps {
+  max-height: 400px;
+}
+</style>

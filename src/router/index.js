@@ -7,8 +7,12 @@ import Login from "../views/layouts/auth/Login.vue";
 import Blank from "../views/layouts/Blank.vue";
 
 // views
-import ListeEmployes from "../views/ListeEmployes.vue";
-import FicheEmploye from "../views/FicheEmploye.vue";
+import ListeEmployes from "../views/emp/ListeEmployes.vue";
+import FicheEmploye from "../views/emp/FicheEmploye.vue";
+import CalendrierConge from "../views/conge/CalendrierConge.vue";
+
+import DemandeConge from "../views/conge/DemandeConge.vue";
+import ListeConges from "../views/conge/ListeConges.vue";
 
 // error page
 import Page404 from "../views/layouts/error/404.vue";
@@ -43,16 +47,34 @@ const routes = [
     meta: { title: "Liste emp" },
   },
   {
+    path: "/fiche-utilisateur",
+    name: "FicheUtilisateur",
+    component: () => import("../views/utilisateur/FicheUtilisateur.vue"),
+    meta: { title: "Fiche Utilisateur" },
+  },
+  {
     path: "/employes/:id",
     name: "FicheEmploye",
     component: FicheEmploye,
     meta: { title: "Fiche Employé" + appname },
   },
   {
+    path: "/conges/demandes",
+    name: "DemandeConges",
+    component: () => DemandeConge,
+    meta: { title: "Nouveau Congé" },
+  },
+  {
+    path: "/conges/liste",
+    name: "ListeConges",
+    component: () => ListeConges,
+    meta: { title: "Liste des Congés" },
+  },
+  {
     path: "/conges/calendrier",
-    name: "CalendrierConge",
-    component: () => import("../views/CalendrierConge.vue"),
-    meta: { title: "Calendrier des Congés - ERP RH" },
+    name: "CalendrierConges",
+    component: () => CalendrierConge,
+    meta: { title: "Calendrier des Congés" },
   },
   {
     path: "/:pathMatch(.*)*",
