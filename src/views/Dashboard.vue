@@ -37,7 +37,7 @@
         </div>
         <div class="mt-3 flex justify-between text-xs">
           <span class="text-green-600">+5% vs mois dernier</span>
-          <span class="text-gray-500">CDI: 89%</span>
+          <span class="text-gray-500">CDI: {{ cdiPercentage }}%</span>
         </div>
       </div>
 
@@ -105,17 +105,17 @@
         <div class="grid grid-cols-2 gap-4 mt-4">
           <div class="text-center">
             <div class="flex items-center justify-center mb-2">
-              <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-              <span class="text-sm">Hommes</span>
-            </div>
-            <p class="font-semibold text-lg">{{ malePercentage }}%</p>
-          </div>
-          <div class="text-center">
-            <div class="flex items-center justify-center mb-2">
               <div class="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
               <span class="text-sm">Femmes</span>
             </div>
             <p class="font-semibold text-lg">{{ femalePercentage }}%</p>
+          </div>
+          <div class="text-center">
+            <div class="flex items-center justify-center mb-2">
+              <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+              <span class="text-sm">Hommes</span>
+            </div>
+            <p class="font-semibold text-lg">{{ malePercentage }}%</p>
           </div>
         </div>
       </div>
@@ -132,6 +132,29 @@
         <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Types de Contrat</h3>
         <apexchart width="100%" height="300" type="pie" :options="contractChart.options" :series="contractChart.series">
         </apexchart>
+        <div class="grid grid-cols-3 gap-4 mt-4 text-center">
+          <div>
+            <div class="flex items-center justify-center mb-2">
+              <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+              <span class="text-sm">CDI</span>
+            </div>
+            <p class="font-semibold text-lg">{{ cdiPercentage }}%</p>
+          </div>
+          <div>
+            <div class="flex items-center justify-center mb-2">
+              <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+              <span class="text-sm">CDD</span>
+            </div>
+            <p class="font-semibold text-lg">{{ cddPercentage }}%</p>
+          </div>
+          <div>
+            <div class="flex items-center justify-center mb-2">
+              <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+              <span class="text-sm">Essai</span>
+            </div>
+            <p class="font-semibold text-lg">{{ essaiPercentage }}%</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -256,6 +279,7 @@
 
   </div>
 </template>
+
 <script>
 import { Icon } from "@iconify/vue";
 import PersonnelService from '@/services/PersonnelService';
@@ -286,11 +310,11 @@ export default {
         series: [
           {
             name: 'Hommes',
-            data: [8, 12, 49, 10] // 4 valeurs : Inf25, 25-30, 31-50, Sup50
+            data: [8, 12, 25, 24, 10]
           },
           {
             name: 'Femmes',
-            data: [7, 10, 44, 5] // 4 valeurs : Inf25, 25-30, 31-50, Sup50
+            data: [7, 10, 22, 22, 5]
           }
         ],
         options: {
@@ -305,7 +329,7 @@ export default {
           },
           colors: ['#3B82F6', '#EC4899'],
           xaxis: {
-            categories: ['< 25', '25 - 30', '31 - 50', '> 50']
+            categories: ['< 25', '25 - 30', '31 - 40', '41 - 50', '> 50']
           },
           legend: {
             position: 'top'
@@ -314,15 +338,21 @@ export default {
       },
 
       contractChart: {
-        series: [78, 15, 7],
+        series: [50, 25, 25],
         options: {
           chart: {
             type: 'pie',
           },
-          labels: ['CDI', 'CDD', 'Alternance'],
+          labels: ['CDI', 'CDD', 'Contrat d\'essai'],
           colors: ['#10B981', '#F59E0B', '#8B5CF6'],
           legend: {
-            position: 'bottom'
+            show: false // ← DÉSACTIVER LA LÉGENDE DU GRAPHIQUE
+          },
+          dataLabels: {
+            enabled: true, // Afficher les pourcentages sur le graphique
+            formatter: function (val) {
+              return val.toFixed(1) + "%";
+            }
           }
         }
       },
@@ -386,6 +416,9 @@ export default {
       totalEmployees: 0,
       malePercentage: 0,
       femalePercentage: 0,
+      cdiPercentage: 0,
+      cddPercentage: 0,
+      essaiPercentage: 0,
 
       // Alertes fin de contrat
       contractAlerts: [
@@ -527,6 +560,17 @@ export default {
           if (ageData.series && ageData.series.length > 0) {
             this.ageChart.series = ageData.series;
           }
+        }
+
+        // Charger la distribution par type de contrat
+        const contractResponse = await PersonnelService.getContractDistribution();
+        if (contractResponse.success) {
+          this.cdiPercentage = contractResponse.data.cdiPercentage;
+          this.cddPercentage = contractResponse.data.cddPercentage;
+          this.essaiPercentage = contractResponse.data.essaiPercentage;
+
+          // Mettre à jour le graphique des contrats
+          this.contractChart.series = [this.cdiPercentage, this.cddPercentage, this.essaiPercentage];
         }
 
       } catch (error) {

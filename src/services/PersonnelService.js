@@ -36,6 +36,14 @@ const PersonnelService = {
         } catch (error) {
             throw error.response?.data || error;
         }
+    },
+    async getContractDistribution() {
+        try {
+            const response = await apiClient.get('/personnels/statistics/contract-distribution');
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
     }
 };
 
