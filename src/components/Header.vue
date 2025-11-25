@@ -84,18 +84,15 @@
         <button @blur="menuToggleBlur" @click="menuToggle">
           <div class="user-avatar flex p-1 cursor-pointer rounded-md">
             <div>
-              <img src="../assets/img/user.jpg"
-                class="rounded-full mr-4 w-10 h-10 p-1 ring-1 ring-gray-300 dark:ring-gray-500" alt="" />
+              <img :src="userAvatar" class="rounded-full mr-4 w-10 h-10 p-1 ring-1 ring-gray-300 dark:ring-gray-500"
+                alt="Avatar utilisateur" />
             </div>
             <div class="text-left lg:block md:block hidden">
-              <h2 class="dark:text-white text-gray-800">Bonjour, Sahrul</h2>
+              <h2 class="dark:text-white text-gray-800">Bonjour, {{ userName }}</h2>
               <p class="text-xs text-gray-400 dark:text-gray-500">
-                Développeur Frontend
+                {{ userRole }}
               </p>
             </div>
-            <!-- <span class="text-md mt-4 text-gray-300"
-              ><Icon icon="bi:caret-down-fill"
-            /></span> -->
           </div>
         </button>
 
@@ -104,17 +101,24 @@
             class="block absolute right-10 mt-12 z-50 w-52 border dark:border-gray-700 bg-white dark:bg-gray-800 rounded divide-y dark:divide-gray-700 divide-gray-100 shadow">
             <div class="py-3 px-4 text-sm text-gray-900 dark:text-gray-200">
               <div>Connecté en tant que</div>
-              <div class="font-medium truncate">Moh Sahrullah</div>
+              <div class="font-medium truncate">{{ user?.username || 'Utilisateur' }}</div>
+              <div v-if="user?.personnel" class="text-xs text-gray-500 mt-1">
+                {{ user.personnel.prenom }} {{ user.personnel.nom }}
+              </div>
             </div>
             <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSmallButton">
               <li>
                 <a href="#" class="block py-2 px-4 hover:bg-primary hover:text-white">Profil utilisateur</a>
               </li>
+              <li>
+                <a href="#" class="block py-2 px-4 hover:bg-primary hover:text-white">Paramètres</a>
+              </li>
             </ul>
             <div class="py-1">
-              <a href="#"
-                class="block py-2 px-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary hover:text-white">Se
-                déconnecter</a>
+              <button @click="handleLogout"
+                class="block w-full text-left py-2 px-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-500 hover:text-white">
+                Se déconnecter
+              </button>
             </div>
           </div>
         </transition>
@@ -122,11 +126,13 @@
     </div>
   </header>
 </template>
-<style></style>
+
 <script>
 import { Icon } from "@iconify/vue";
 import { fullscreen } from "@/helper/fullscreen";
 import { setDarkMode, loadDarkMode } from "@/helper/theme";
+import AuthService from "@/services/authservice";
+
 export default {
   data() {
     return {
@@ -134,6 +140,7 @@ export default {
       darkMode: false,
       notification: false,
       fullscreenMode: false,
+      user: null,
 
       notifList: [
         {
@@ -162,6 +169,25 @@ export default {
   },
   components: {
     Icon,
+  },
+  computed: {
+    userName() {
+      if (this.user?.personnel) {
+        return this.user.personnel.prenom;
+      }
+      return this.user?.username || 'Utilisateur';
+    },
+    userRole() {
+      // Vous pouvez adapter cette logique selon vos besoins
+      if (this.user?.username === 'admin') {
+        return 'Administrateur';
+      }
+      return this.user?.personnel ? 'Employé' : 'Utilisateur';
+    },
+    userAvatar() {
+      // Vous pouvez adapter l'avatar selon l'utilisateur
+      return require("@/assets/img/user.jpg");
+    }
   },
   watch: {
     $route() {
@@ -204,9 +230,36 @@ export default {
     imageAssets(url) {
       return require("@/assets/img/" + url);
     },
+
+    async handleLogout() {
+      try {
+        await AuthService.logout();
+
+        // Nettoyer le localStorage
+        localStorage.removeItem('user');
+        localStorage.removeItem('isAuthenticated');
+
+        // Rediriger vers la page de login
+        this.$router.push('/auth/login');
+      } catch (error) {
+        console.error('Logout error:', error);
+        // Nettoyer quand même le localStorage même en cas d'erreur
+        localStorage.removeItem('user');
+        localStorage.removeItem('isAuthenticated');
+        this.$router.push('/auth/login');
+      }
+    },
+
+    loadUserData() {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        this.user = JSON.parse(userData);
+      }
+    }
   },
   mounted() {
     this.darkMode = this.loadDarkMode();
+    this.loadUserData();
 
     document.onfullscreenchange = (event) => {
       if (document.fullscreenElement) {
@@ -218,3 +271,15 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
