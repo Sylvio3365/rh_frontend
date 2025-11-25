@@ -17,16 +17,23 @@ import ListeConges from "../views/conge/ListeConges.vue";
 // error page
 import Page404 from "../views/layouts/error/404.vue";
 
+import Hello from "@/views/Hello.vue";
 var appname = " - Windzo Dashboard Admin Template";
 
 const routes = [
-  // Routes
+  {
+    path: "/hello",
+    name: "Hello",
+    component: Hello,
+    meta: { title: "Hello" + appname },
+  },
   {
     path: "/",
     name: "Dashboard",
     component: Dashboard,
     meta: { title: "Dashboard " + appname },
   },
+
   // layouts
   {
     path: "/Blank",
