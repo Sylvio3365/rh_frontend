@@ -90,7 +90,6 @@ const routes = [
     component: CalendrierConge,
     meta: { title: "Calendrier des Congés" + appname, requiresAuth: true }, // Protégé
   },
-
   // error page
   {
     path: "/:pathMatch(.*)*",

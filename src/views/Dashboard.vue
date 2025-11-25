@@ -28,7 +28,7 @@
       <div class="card bg-white dark:bg-gray-800 w-full rounded-lg p-5 border dark:border-gray-700">
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">156</p>
+            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">{{ totalEmployees }}</p>
             <h2 class="font-normal text-gray-400 text-sm mt-1">Employés Total</h2>
           </div>
           <div class="bg-orange-100 rounded-full w-12 h-12 flex items-center justify-center">
@@ -108,14 +108,14 @@
               <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
               <span class="text-sm">Hommes</span>
             </div>
-            <p class="font-semibold text-lg">58%</p>
+            <p class="font-semibold text-lg">{{ malePercentage }}%</p>
           </div>
           <div class="text-center">
             <div class="flex items-center justify-center mb-2">
               <div class="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
               <span class="text-sm">Femmes</span>
             </div>
-            <p class="font-semibold text-lg">42%</p>
+            <p class="font-semibold text-lg">{{ femalePercentage }}%</p>
           </div>
         </div>
       </div>
@@ -256,9 +256,9 @@
 
   </div>
 </template>
-
 <script>
 import { Icon } from "@iconify/vue";
+import PersonnelService from '@/services/PersonnelService';
 
 export default {
   name: "DashboardRH",
@@ -286,11 +286,11 @@ export default {
         series: [
           {
             name: 'Hommes',
-            data: [8, 12, 15, 18, 16, 10, 6]
+            data: [8, 12, 49, 10] // 4 valeurs : Inf25, 25-30, 31-50, Sup50
           },
           {
             name: 'Femmes',
-            data: [7, 10, 14, 16, 14, 9, 5]
+            data: [7, 10, 44, 5] // 4 valeurs : Inf25, 25-30, 31-50, Sup50
           }
         ],
         options: {
@@ -305,7 +305,7 @@ export default {
           },
           colors: ['#3B82F6', '#EC4899'],
           xaxis: {
-            categories: ['<25', '25-30', '31-35', '36-40', '41-45', '46-50', '>50']
+            categories: ['< 25', '25 - 30', '31 - 50', '> 50']
           },
           legend: {
             position: 'top'
@@ -382,6 +382,11 @@ export default {
         }
       },
 
+      // Données dynamiques
+      totalEmployees: 0,
+      malePercentage: 0,
+      femalePercentage: 0,
+
       // Alertes fin de contrat
       contractAlerts: [
         {
@@ -432,84 +437,6 @@ export default {
           department: "IT",
           daysLeft: 15,
           deadline: "31/12/2024"
-        }
-      ],
-
-      // Postes ouverts
-      openPositions: [
-        {
-          id: 1,
-          title: "Développeur Fullstack",
-          department: "IT",
-          candidates: 24,
-          daysOpen: 15,
-          progress: 75,
-          urgency: "Élevée",
-          urgencyClass: "bg-red-100 text-red-800"
-        },
-        {
-          id: 2,
-          title: "Chef de Projet",
-          department: "IT",
-          candidates: 18,
-          daysOpen: 22,
-          progress: 60,
-          urgency: "Moyenne",
-          urgencyClass: "bg-orange-100 text-orange-800"
-        },
-        {
-          id: 3,
-          title: "Commercial B2B",
-          department: "Commercial",
-          candidates: 32,
-          daysOpen: 10,
-          progress: 45,
-          urgency: "Normale",
-          urgencyClass: "bg-blue-100 text-blue-800"
-        }
-      ],
-
-      // Formations à venir
-      upcomingTrainings: [
-        {
-          id: 1,
-          title: "Leadership & Management",
-          date: "15/12/2024",
-          participants: 12,
-          status: "confirmée"
-        },
-        {
-          id: 2,
-          title: "Cybersécurité Avancée",
-          date: "20/12/2024",
-          participants: 8,
-          status: "en attente"
-        },
-        {
-          id: 3,
-          title: "Intelligence Artificielle",
-          date: "05/01/2025",
-          participants: 15,
-          status: "confirmée"
-        }
-      ],
-
-      // Compétences critiques
-      criticalSkills: [
-        {
-          name: "Data Science",
-          department: "IT/Data",
-          gap: 3
-        },
-        {
-          name: "Cloud Architecture",
-          department: "IT",
-          gap: 2
-        },
-        {
-          name: "Marketing Digital",
-          department: "Marketing",
-          gap: 2
         }
       ],
 
@@ -571,8 +498,41 @@ export default {
   components: {
     Icon,
   },
-  mounted() {
-    // Ici vous pouvez ajouter des appels API pour récupérer les données réelles
+  async mounted() {
+    await this.loadDashboardData();
+  },
+  methods: {
+    async loadDashboardData() {
+      try {
+        // Charger le nombre total d'employés
+        const countResponse = await PersonnelService.getPersonnelCount();
+        if (countResponse.success) {
+          this.totalEmployees = countResponse.data;
+        }
+
+        // Charger la distribution par genre
+        const genderResponse = await PersonnelService.getGenderDistribution();
+        if (genderResponse.success) {
+          this.malePercentage = genderResponse.data.malePercentage;
+          this.femalePercentage = genderResponse.data.femalePercentage;
+
+          // Mettre à jour le graphique genre
+          this.genderChart.series = [this.malePercentage, this.femalePercentage];
+        }
+
+        // Charger la distribution par âge
+        const ageResponse = await PersonnelService.getAgeDistribution();
+        if (ageResponse.success && ageResponse.data.data) {
+          const ageData = ageResponse.data.data;
+          if (ageData.series && ageData.series.length > 0) {
+            this.ageChart.series = ageData.series;
+          }
+        }
+
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+      }
+    }
   }
 };
 </script>
