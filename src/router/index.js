@@ -18,7 +18,7 @@ import ListeConges from "../views/conge/ListeConges.vue";
 import Page404 from "../views/layouts/error/404.vue";
 
 import Hello from "@/views/Hello.vue";
-var appname = " - Windzo Dashboard Admin Template";
+var appname = "RH";
 
 const routes = [
   {
@@ -51,13 +51,13 @@ const routes = [
     path: "/employes/liste",
     name: "Liste employes",
     component: ListeEmployes,
-    meta: { title: "Liste emp" },
+    meta: { title: "Liste emp" + appname },
   },
   {
     path: "/fiche-utilisateur",
     name: "FicheUtilisateur",
     component: () => import("../views/utilisateur/FicheUtilisateur.vue"),
-    meta: { title: "Fiche Utilisateur" },
+    meta: { title: "Fiche Utilisateur" + appname },
   },
   {
     path: "/employes/:id",
@@ -69,19 +69,19 @@ const routes = [
     path: "/conges/demandes",
     name: "DemandeConges",
     component: () => DemandeConge,
-    meta: { title: "Nouveau Congé" },
+    meta: { title: "Nouveau Congé" + appname },
   },
   {
     path: "/conges/liste",
     name: "ListeConges",
     component: () => ListeConges,
-    meta: { title: "Liste des Congés" },
+    meta: { title: "Liste des Congés" + appname },
   },
   {
     path: "/conges/calendrier",
     name: "CalendrierConges",
     component: () => CalendrierConge,
-    meta: { title: "Calendrier des Congés" },
+    meta: { title: "Calendrier des Congés" + appname },
   },
   {
     path: "/:pathMatch(.*)*",
