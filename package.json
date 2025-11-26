@@ -25,6 +25,7 @@
     "@fullcalendar/vue3": "^6.1.19",
     "apexcharts": "^3.34.0",
     "autoprefixer": "^10.4.14",
+    "axios": "^1.13.2",
     "chart.js": "^3.7.1",
     "click-outside-vue3": "^4.0.1",
     "core-js": "^3.8.3",

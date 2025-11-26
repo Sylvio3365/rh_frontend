@@ -74,7 +74,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date de
                                 naissance</label>
-                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ formatDate(employe.dateNaissance)
+                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ formatDate(employe.dtn)
                                 }}</p>
                         </div>
                         <div>
@@ -137,7 +137,7 @@
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description du
                                 poste</label>
-                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ employe.descriptionPoste }}</p>
+                            <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ employe.posteDescription }}</p>
                         </div>
                     </div>
                 </div>
@@ -145,19 +145,29 @@
                 <!-- Historique des postes -->
                 <div v-if="ongletActif === 'historique'"
                     class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Historique des Postes</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Historique des Postes
+                    </h2>
                     <div class="space-y-4">
-                        <div v-for="poste in historiquePostes" :key="poste.id"
-                            class="border-l-4 border-primary pl-4 py-2">
-                            <div class="flex justify-between items-start">
+                        <div v-for="histo in historiquePostes" class="border-l-4 border-primary pl-4 py-2">
+                            <div class="flex justify-between items-start"> 
                                 <div>
-                                    <h3 class="font-medium text-gray-900 dark:text-white">{{ poste.titre }}</h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ poste.departement }}</p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-500">{{ poste.description }}</p>
+                                    <h3 class="font-medium text-gray-900 dark:text-white">{{ histo.poste }}</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400"> Département : {{ histo.departement }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400"> Salaire : {{ histo.salaire.toLocaleString() }} MGA </p>
+                                    <!-- Badge du mouvement -->
+                                    <span class="inline-block mt-1 px-2 py-1 text-xs rounded-full"
+                                        :class="{
+                                            'bg-blue-100 text-blue-800': histo.mouvement === 'Mobilité',
+                                            'bg-green-100 text-green-800': histo.mouvement === 'Promotion',
+                                            'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300': histo.mouvement === 'Premier poste'
+                                        }">
+                                        {{ histo.mouvement }}
+                                    </span>
                                 </div>
                                 <div class="text-right text-sm text-gray-500 dark:text-gray-400">
-                                    <div>{{ formatDate(poste.dateDebut) }}</div>
-                                    <div v-if="poste.dateFin">{{ formatDate(poste.dateFin) }}</div>
+                                    <div>{{ formatDate(histo.dateDebut) }}</div>
+                                    <div v-if="histo.dateFin">{{ formatDate(histo.dateFin) }}</div>
                                     <div v-else class="text-green-600 dark:text-green-400">Actuel</div>
                                 </div>
                             </div>
@@ -223,6 +233,7 @@
 
 <script>
 import { Icon } from "@iconify/vue";
+import axios from "axios";
 
 export default {
     name: "FicheEmploye",
@@ -239,55 +250,89 @@ export default {
                 { id: 'documents', nom: 'Documents' },
                 { id: 'contrat', nom: 'Contrat' }
             ],
-            employe: {
-                id: 1,
-                nom: "Dubois",
-                prenom: "Marie",
-                email: "marie.dubois@entreprise.com",
-                telephone: "+33 1 23 45 67 89",
-                adresse: "123 Avenue des Champs-Élysées, 75008 Paris",
-                dateNaissance: "1990-05-15",
-                lieuNaissance: "Paris, France",
-                nationalite: "Française",
-                situationFamiliale: "Célibataire",
-                photo: require("@/assets/img/user1.png"),
-                poste: "Développeuse Frontend Senior",
-                descriptionPoste: "Développement d'applications web modernes avec Vue.js et gestion de l'équipe frontend.",
-                departement: "IT",
-                matricule: "EMP-2022-001",
-                typeContrat: "CDI",
-                dateEntree: "2022-03-15",
-                dateFinContrat: null,
-                periodeEssai: "Terminée",
-                statut: "Actif"
-            },
-            historiquePostes: [
-                {
-                    id: 1,
-                    titre: "Développeuse Frontend Junior",
-                    departement: "IT",
-                    description: "Développement d'interfaces utilisateur",
-                    dateDebut: "2022-03-15",
-                    dateFin: "2023-03-14"
-                },
-                {
-                    id: 2,
-                    titre: "Développeuse Frontend Senior",
-                    departement: "IT",
-                    description: "Lead développeuse frontend, gestion d'équipe",
-                    dateDebut: "2023-03-15",
-                    dateFin: null
-                }
-            ],
-            documents: [
-                { id: 1, nom: "Carte d'identité", type: "cin" },
-                { id: 2, nom: "Diplôme Master", type: "diplome" },
-                { id: 3, nom: "Attestation de travail", type: "attestation" },
-                { id: 4, nom: "Contrat de travail", type: "contrat" }
-            ]
+            employe: {},                
+            historiquePostes: [],     
+            documents: []     
         };
     },
+    mounted() {
+        this.chargerEmploye();
+        this.chargerHistoriques();
+    },
     methods: {
+        async chargerEmploye() {
+            const id = this.$route.params.id;
+            try {
+                const response = await axios.get(`http://localhost:9090/personnels/${id}`);
+                const data = response.data;
+                this.employe = {
+                    id: data.idPersonnel,
+                    nom: data.nom,
+                    prenom: data.prenom,
+                    email: data.nom + data.prenom + "@gmail.com",
+                    dtn: data.dtn,
+                    lieuNaissance: data.lieuNaissance,
+                    nationalite: data.nationalite,
+                    situationFamiliale: data.stf,
+                    photo: require(`@/assets/img/user1.png`),
+                    poste: null,
+                    departement: null,
+                    typeContrat: null,      
+                    dateEntree: null,   
+                    statut: data.statut == 1 ? "Actif" : "Non actif",
+                    matricule: data.matricule || "N/A",
+                    adresse: data.adresse || "Non spécifiée",
+                    telephone: data.telephone || "Non spécifié"
+                };
+
+                const contrat = await axios.get(`http://localhost:9090/personnels/${id}/contrat/actif`);
+                this.employe.typeContrat = contrat.data.typeContrat.libelle;
+                this.employe.dateEntree = contrat.data.dateDebut;
+                this.employe.dateFinContrat = contrat.data.dateFin;
+                this.employe.periodeEssai = contrat.data.typeContrat.nbMois + ' mois';
+                this.employe.poste = contrat.data.poste.nom;
+                this.employe.posteDescription = contrat.data.poste.description || "--";
+                this.employe.departement = contrat.data.poste.departement.libelle;
+
+            } catch (error) {
+                console.error("Erreur lors du chargement employé :", error);
+            }
+        },
+        async chargerHistoriques() {
+            const id = this.$route.params.id;
+            try {
+                const response = await axios.get(`http://localhost:9090/personnels/${id}/contrats`);
+                const data = response.data;
+                let histo = data.map(item => ({
+                    poste: item.poste.nom,
+                    departement: item.poste.departement.libelle,
+                    salaire: item.salaire,
+                    dateDebut: item.dateDebut,
+                    dateFin: item.dateFin,
+                    typeContrat: item.typeContrat.libelle
+                }));
+                histo.sort((a, b) => new Date(a.dateDebut) - new Date(b.dateDebut));
+                // Détection mouvement (promotion / mobilité)
+                histo = histo.map((item, index) => {
+                    if (index === 0) {
+                        return { ...item, mouvement: "Premier poste" };
+                    }
+                    const prev = histo[index - 1];
+                    // Mobilité = le département change
+                    if (item.departement !== prev.departement) {
+                        return { ...item, mouvement: "Mobilité" };
+                    }
+                    // Promotion = salaire augmente OU poste change dans le même département
+                    if (item.salaire > prev.salaire || item.poste !== prev.poste) {
+                        return { ...item, mouvement: "Promotion" };
+                    }
+                    return { ...item, mouvement: "Changement" };
+                });
+                this.historiquePostes = histo;
+            } catch (error) {
+                console.error("Erreur lors du chargement de l'historique :", error);
+            }
+        },
         formatDate(date) {
             if (!date) return 'Non spécifié';
             return new Date(date).toLocaleDateString('fr-FR');

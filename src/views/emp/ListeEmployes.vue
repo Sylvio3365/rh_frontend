@@ -64,7 +64,7 @@
                             @click="voirFicheEmploye(employe.id)">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <img :src="employe.photo" :alt="employe.nom"
+                                    <img src="@/assets/img/user1.png" :alt="employe.nom"
                                         class="h-10 w-10 rounded-full object-cover">
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -89,20 +89,20 @@
                                     {{ employe.typeContrat }}
                                 </span>
                                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    {{ formatDate(employe.dateEntree) }}
+                                    {{ formatDate(employe.dateDebut) }}
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex gap-2">
-                                    <button @click.stop="editerEmploye(employe.id)"
+                                    <button @click.stop="editerEmploye(employe.idPersonnel)"
                                         class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
                                         <Icon icon="mdi:pencil" />
                                     </button>
-                                    <button @click.stop="voirDocuments(employe.id)"
+                                    <button @click.stop="voirDocuments(employe.idPersonnel)"
                                         class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
                                         <Icon icon="mdi:file-document" />
                                     </button>
-                                    <button @click.stop="voirHistorique(employe.id)"
+                                    <button @click.stop="voirHistorique(employe.idPersonnel)"
                                         class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">
                                         <Icon icon="mdi:history" />
                                     </button>
@@ -118,6 +118,7 @@
 
 <script>
 import { Icon } from "@iconify/vue";
+import axios from "axios";
 
 export default {
     name: "ListeEmployes",
@@ -126,47 +127,51 @@ export default {
     },
     data() {
         return {
-            employes: [
-                {
-                    id: 1,
-                    nom: "Dubois",
-                    prenom: "Marie",
-                    email: "marie.dubois@entreprise.com",
-                    poste: "Développeuse Frontend",
-                    departement: "IT",
-                    photo: require("@/assets/img/user1.png"),
-                    typeContrat: "CDI",
-                    dateEntree: "2022-03-15",
-                    statut: "Actif"
-                },
-                {
-                    id: 2,
-                    nom: "Martin",
-                    prenom: "Pierre",
-                    email: "pierre.martin@entreprise.com",
-                    poste: "Chef de Projet",
-                    departement: "Management",
-                    photo: require("@/assets/img/user2.png"),
-                    typeContrat: "CDI",
-                    dateEntree: "2021-06-01",
-                    statut: "Actif"
-                },
-                {
-                    id: 3,
-                    nom: "Laurent",
-                    prenom: "Sophie",
-                    email: "sophie.laurent@entreprise.com",
-                    poste: "Responsable RH",
-                    departement: "Ressources Humaines",
-                    photo: require("@/assets/img/user3.png"),
-                    typeContrat: "CDD",
-                    dateEntree: "2023-01-10",
-                    statut: "En période d'essai"
-                }
-            ]
+            employes: [] 
         };
     },
+
+    mounted() {
+        this.chargerEmployes();
+    },
     methods: {
+        async chargerEmployes() {
+            try {
+                const res = await axios.get("http://localhost:9090/personnels");
+                const personnels = res.data;
+
+                const employesComplets = await Promise.all(
+                    personnels.map(async (p) => {
+                        let contrat = null;
+                        try {
+                            const resContrat = await axios.get(`http://localhost:9090/personnels/${p.idPersonnel}/contrat/actif`);
+                            contrat = resContrat.data;
+                        } catch (error) {
+                            console.warn("Pas de contrat actif pour :", p.idPersonnel);
+                        }
+
+                        return {
+                            id: p.idPersonnel,
+                            nom: p.nom,
+                            prenom: p.prenom,
+                            email: p.utilisateur?.username || "-",
+                            photo: p.photo || "user1.png",
+
+                            poste: contrat?.poste?.nom || "Aucun poste",
+                            departement: contrat?.poste?.departement?.libelle || "N/A",
+                            typeContrat: contrat?.typeContrat?.libelle || "Aucun contrat",
+                            dateDebut: contrat?.dateDebut || null
+                        };
+                    })
+                );
+
+                this.employes = employesComplets;
+
+            } catch (e) {
+                console.error("Erreur lors du chargement :", e);
+            }
+        },
+
         getCouleurContrat(typeContrat) {
             const couleurs = {
                 'CDI': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -199,6 +204,9 @@ export default {
         },
         voirHistorique(id) {
             this.$router.push(`/employes/${id}/historique`);
+        },
+        getImageUrl(nomFichier) {
+            return new URL(`../../assets/img/${nomFichier}`, import.meta.url).href;
         }
     }
 };
