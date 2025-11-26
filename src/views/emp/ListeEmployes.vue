@@ -127,7 +127,7 @@ export default {
     },
     data() {
         return {
-            employes: [] 
+            employes: []
         };
     },
 

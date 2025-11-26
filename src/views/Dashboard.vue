@@ -28,15 +28,17 @@
       <div class="card bg-white dark:bg-gray-800 w-full rounded-lg p-5 border dark:border-gray-700">
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">{{ totalEmployees }}</p>
-            <h2 class="font-normal text-gray-400 text-sm mt-1">Employés Total</h2>
+            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">{{ currentMonthEffectif }}</p>
+            <h2 class="font-normal text-gray-400 text-sm mt-1">Effectif Actuel ({{ getMonthName(currentMonth) }})</h2>
           </div>
           <div class="bg-orange-100 rounded-full w-12 h-12 flex items-center justify-center">
             <Icon icon="mdi:account-group" class="text-orange-600 text-xl" />
           </div>
         </div>
         <div class="mt-3 flex justify-between text-xs">
-          <span class="text-green-600">+5% vs mois dernier</span>
+          <span :class="effectifVariation >= 0 ? 'text-green-600' : 'text-red-600'">
+            {{ effectifVariation >= 0 ? '+' : '' }}{{ effectifVariation }}% vs mois dernier
+          </span>
           <span class="text-gray-500">CDI: {{ cdiPercentage }}%</span>
         </div>
       </div>
@@ -170,7 +172,7 @@
 
       <!-- Évolution des Effectifs -->
       <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
-        <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Évolution des Effectifs</h3>
+        <h3 class="font-semibold text-gray-900 dark:text-gray-200 mb-4">Évolution des Effectifs {{ selectedYear }}</h3>
         <apexchart width="100%" height="300" type="area" :options="workforceTrend.options"
           :series="workforceTrend.series">
         </apexchart>
@@ -283,122 +285,102 @@
 <script>
 import { Icon } from "@iconify/vue";
 import PersonnelService from '@/services/PersonnelService';
+import EffectifService from '@/services/EffectifService';
 
 export default {
   name: "DashboardRH",
   data() {
+    // Obtenir la date actuelle - Novembre comme mois actuel
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = 11; // Novembre comme mois actuel
+
     return {
+      // Données d'effectif
+      effectifData: [],
+      selectedYear: currentYear,
+      currentMonth: currentMonth,
+      currentMonthEffectif: 0,
+      effectifVariation: 0,
+
       // Données pour les graphiques démographiques
       genderChart: {
         series: [58, 42],
         options: {
-          chart: {
-            type: 'donut',
-          },
+          chart: { type: 'donut' },
           labels: ['Hommes', 'Femmes'],
           colors: ['#3B82F6', '#EC4899'],
-          legend: {
-            show: false
-          },
-          dataLabels: {
-            enabled: false
-          }
+          legend: { show: false },
+          dataLabels: { enabled: false }
         }
       },
 
       ageChart: {
         series: [
-          {
-            name: 'Hommes',
-            data: [8, 12, 25, 24, 10]
-          },
-          {
-            name: 'Femmes',
-            data: [7, 10, 22, 22, 5]
-          }
+          { name: 'Hommes', data: [8, 12, 25, 24, 10] },
+          { name: 'Femmes', data: [7, 10, 22, 22, 5] }
         ],
         options: {
-          chart: {
-            type: 'bar',
-            stacked: true
-          },
-          plotOptions: {
-            bar: {
-              horizontal: true,
-            },
-          },
+          chart: { type: 'bar', stacked: true },
+          plotOptions: { bar: { horizontal: true } },
           colors: ['#3B82F6', '#EC4899'],
-          xaxis: {
-            categories: ['< 25', '25 - 30', '31 - 40', '41 - 50', '> 50']
-          },
-          legend: {
-            position: 'top'
-          }
+          xaxis: { categories: ['< 25', '25 - 30', '31 - 40', '41 - 50', '> 50'] },
+          legend: { position: 'top' }
         }
       },
 
       contractChart: {
         series: [50, 25, 25],
         options: {
-          chart: {
-            type: 'pie',
-          },
+          chart: { type: 'pie' },
           labels: ['CDI', 'CDD', 'Contrat d\'essai'],
           colors: ['#10B981', '#F59E0B', '#8B5CF6'],
-          legend: {
-            show: false // ← DÉSACTIVER LA LÉGENDE DU GRAPHIQUE
-          },
+          legend: { show: false },
           dataLabels: {
-            enabled: true, // Afficher les pourcentages sur le graphique
-            formatter: function (val) {
-              return val.toFixed(1) + "%";
-            }
+            enabled: true,
+            formatter: function (val) { return val.toFixed(1) + "%"; }
           }
         }
       },
 
-      // Évolution du turnover
       turnoverTrend: {
-        series: [{
-          name: 'Taux de turnover',
-          data: [6.8, 7.2, 8.1, 7.5, 8.2, 7.9, 8.2]
-        }],
+        series: [{ name: 'Taux de turnover', data: [6.8, 7.2, 8.1, 7.5, 8.2, 7.9, 8.2] }],
         options: {
-          chart: {
-            type: 'line',
-            height: 350
-          },
-          stroke: {
-            width: 3,
-            curve: 'smooth'
-          },
-          xaxis: {
-            categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul']
-          },
+          chart: { type: 'line', height: 350 },
+          stroke: { width: 3, curve: 'smooth' },
+          xaxis: { categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul'] },
           colors: ['#EF4444'],
-          markers: {
-            size: 5
-          }
+          markers: { size: 5 }
         }
       },
 
-      // Évolution des effectifs
       workforceTrend: {
-        series: [{
-          name: 'Effectifs',
-          data: [142, 145, 148, 150, 152, 154, 156]
-        }],
+        series: [{ name: 'Effectifs', data: [15, 18, 22, 25, 28, 30, 12, 16, 19, 23, 20] }],
         options: {
           chart: {
             type: 'area',
-            height: 350
+            height: 350,
+            toolbar: {
+              show: true
+            }
           },
-          stroke: {
-            width: 3,
-            curve: 'smooth'
-          },
+          stroke: { width: 3, curve: 'smooth' },
           xaxis: {
-            categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul']
+            categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov'],
+            labels: {
+              style: {
+                colors: '#6B7280',
+                fontSize: '12px'
+              }
+            }
+          },
+          yaxis: {
+            labels: {
+              style: {
+                colors: '#6B7280',
+                fontSize: '12px'
+              }
+            }
           },
           colors: ['#3B82F6'],
           fill: {
@@ -407,7 +389,16 @@ export default {
               shadeIntensity: 1,
               opacityFrom: 0.7,
               opacityTo: 0.2,
+              stops: [0, 90, 100]
             }
+          },
+          grid: {
+            borderColor: '#E5E7EB',
+            strokeDashArray: 4,
+          },
+          tooltip: {
+            enabled: true,
+            theme: 'dark'
           }
         }
       },
@@ -422,109 +413,25 @@ export default {
 
       // Alertes fin de contrat
       contractAlerts: [
-        {
-          id: 1,
-          employee: "Marie Dubois",
-          position: "Développeuse Frontend",
-          department: "IT",
-          endDate: "15/12/2024",
-          daysLeft: 15
-        },
-        {
-          id: 2,
-          employee: "Thomas Bernard",
-          position: "Analyste Data",
-          department: "Data",
-          endDate: "20/12/2024",
-          daysLeft: 20
-        },
-        {
-          id: 3,
-          employee: "Julie Petit",
-          position: "Designer UI/UX",
-          department: "Design",
-          endDate: "25/12/2024",
-          daysLeft: 25
-        }
+        { id: 1, employee: "Marie Dubois", position: "Développeuse Frontend", department: "IT", endDate: "15/12/2024", daysLeft: 15 },
+        { id: 2, employee: "Thomas Bernard", position: "Analyste Data", department: "Data", endDate: "20/12/2024", daysLeft: 20 },
+        { id: 3, employee: "Julie Petit", position: "Designer UI/UX", department: "Design", endDate: "25/12/2024", daysLeft: 25 }
       ],
 
       // Congés non pris
       unusedLeaves: [
-        {
-          id: 1,
-          employee: "Pierre Martin",
-          department: "Commercial",
-          daysLeft: 12,
-          deadline: "31/12/2024"
-        },
-        {
-          id: 2,
-          employee: "Sophie Laurent",
-          department: "RH",
-          daysLeft: 8,
-          deadline: "31/12/2024"
-        },
-        {
-          id: 3,
-          employee: "Marc Dupont",
-          department: "IT",
-          daysLeft: 15,
-          deadline: "31/12/2024"
-        }
+        { id: 1, employee: "Pierre Martin", department: "Commercial", daysLeft: 12, deadline: "31/12/2024" },
+        { id: 2, employee: "Sophie Laurent", department: "RH", daysLeft: 8, deadline: "31/12/2024" },
+        { id: 3, employee: "Marc Dupont", department: "IT", daysLeft: 15, deadline: "31/12/2024" }
       ],
 
       // Statistiques par service
       departmentStats: [
-        {
-          name: "IT",
-          employees: 45,
-          turnover: 12.5,
-          absenteeism: 3.2,
-          seniority: 3.8,
-          budgetStatus: "dépassé",
-          satisfaction: 8.7,
-          color: "bg-blue-500"
-        },
-        {
-          name: "Commercial",
-          employees: 38,
-          turnover: 8.2,
-          absenteeism: 2.1,
-          seniority: 4.2,
-          budgetStatus: "dans budget",
-          satisfaction: 8.2,
-          color: "bg-green-500"
-        },
-        {
-          name: "Marketing",
-          employees: 22,
-          turnover: 6.5,
-          absenteeism: 4.8,
-          seniority: 5.1,
-          budgetStatus: "dans budget",
-          satisfaction: 7.8,
-          color: "bg-purple-500"
-        },
-        {
-          name: "RH",
-          employees: 15,
-          turnover: 3.2,
-          absenteeism: 2.5,
-          seniority: 6.3,
-          budgetStatus: "dans budget",
-          satisfaction: 8.9,
-          color: "bg-pink-500"
-        },
-        {
-          name: "Production",
-          employees: 36,
-          turnover: 15.2,
-          absenteeism: 7.8,
-          seniority: 2.8,
-          budgetStatus: "dépassé",
-          satisfaction: 6.5,
-          color: "bg-orange-500"
-        }
+        { name: "IT", employees: 45, turnover: 12.5, absenteeism: 3.2, seniority: 3.8, budgetStatus: "dépassé", satisfaction: 8.7, color: "bg-blue-500" },
+        { name: "Commercial", employees: 38, turnover: 8.2, absenteeism: 2.1, seniority: 4.2, budgetStatus: "dans budget", satisfaction: 8.2, color: "bg-green-500" },
+        { name: "Marketing", employees: 22, turnover: 6.5, absenteeism: 4.8, seniority: 5.1, budgetStatus: "dans budget", satisfaction: 7.8, color: "bg-purple-500" },
+        { name: "RH", employees: 15, turnover: 3.2, absenteeism: 2.5, seniority: 6.3, budgetStatus: "dans budget", satisfaction: 8.9, color: "bg-pink-500" },
+        { name: "Production", employees: 36, turnover: 15.2, absenteeism: 7.8, seniority: 2.8, budgetStatus: "dépassé", satisfaction: 6.5, color: "bg-orange-500" }
       ]
     };
   },
@@ -533,27 +440,23 @@ export default {
   },
   async mounted() {
     await this.loadDashboardData();
+    await this.loadEffectifData();
   },
   methods: {
     async loadDashboardData() {
       try {
-        // Charger le nombre total d'employés
         const countResponse = await PersonnelService.getPersonnelCount();
         if (countResponse.success) {
           this.totalEmployees = countResponse.data;
         }
 
-        // Charger la distribution par genre
         const genderResponse = await PersonnelService.getGenderDistribution();
         if (genderResponse.success) {
           this.malePercentage = genderResponse.data.malePercentage;
           this.femalePercentage = genderResponse.data.femalePercentage;
-
-          // Mettre à jour le graphique genre
           this.genderChart.series = [this.malePercentage, this.femalePercentage];
         }
 
-        // Charger la distribution par âge
         const ageResponse = await PersonnelService.getAgeDistribution();
         if (ageResponse.success && ageResponse.data.data) {
           const ageData = ageResponse.data.data;
@@ -562,20 +465,79 @@ export default {
           }
         }
 
-        // Charger la distribution par type de contrat
         const contractResponse = await PersonnelService.getContractDistribution();
         if (contractResponse.success) {
           this.cdiPercentage = contractResponse.data.cdiPercentage;
           this.cddPercentage = contractResponse.data.cddPercentage;
           this.essaiPercentage = contractResponse.data.essaiPercentage;
-
-          // Mettre à jour le graphique des contrats
           this.contractChart.series = [this.cdiPercentage, this.cddPercentage, this.essaiPercentage];
         }
 
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
       }
+    },
+
+    async loadEffectifData() {
+      try {
+        // Charger les données de janvier à novembre
+        const response = await EffectifService.getEffectifByMoisRange(1, 11, this.selectedYear);
+
+        if (response && Array.isArray(response)) {
+          this.effectifData = response;
+          this.calculateEffectifMetrics();
+          this.updateWorkforceTrendChart();
+        } else {
+          // Si pas de données, utiliser les données par défaut
+          this.updateWorkforceTrendChart();
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des effectifs:', error);
+        // Utiliser les données par défaut en cas d'erreur
+        this.updateWorkforceTrendChart();
+      }
+    },
+
+    calculateEffectifMetrics() {
+      if (this.effectifData.length > 0) {
+        const novemberData = this.effectifData.find(item => item.mois === 11);
+        if (novemberData) {
+          this.currentMonthEffectif = novemberData.nbEmp;
+
+          // Calculer la variation par rapport à octobre
+          const octoberData = this.effectifData.find(item => item.mois === 10);
+          if (octoberData && octoberData.nbEmp > 0) {
+            this.effectifVariation = Math.round(
+              ((this.currentMonthEffectif - octoberData.nbEmp) / octoberData.nbEmp) * 100
+            );
+          }
+        }
+      }
+    },
+
+    updateWorkforceTrendChart() {
+      // Si on a des données d'effectif, les utiliser, sinon utiliser les données par défaut
+      if (this.effectifData.length > 0) {
+        const sortedData = this.effectifData.sort((a, b) => a.mois - b.mois);
+
+        // Mettre à jour les séries du graphique
+        this.workforceTrend.series = [{
+          name: 'Effectifs',
+          data: sortedData.map(item => item.nbEmp)
+        }];
+
+        // Mettre à jour les labels des mois (Janvier à Novembre)
+        this.workforceTrend.options.xaxis.categories = sortedData.map(item =>
+          this.getMonthName(item.mois).substring(0, 3)
+        );
+      }
+      // Sinon, garder les données par défaut définies dans data()
+    },
+
+    getMonthName(monthNumber) {
+      const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+      return monthNames[monthNumber - 1];
     }
   }
 };
@@ -595,7 +557,6 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Styles pour le défilement personnalisé */
 .ps {
   max-height: 400px;
 }
