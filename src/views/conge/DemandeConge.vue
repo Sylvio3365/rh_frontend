@@ -24,8 +24,12 @@
                             <div class="relative">
                                 <input v-model="searchEmployee" @input="filterEmployees"
                                     @focus="showEmployeeList = true" type="text" placeholder="Rechercher un employé..."
-                                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary dark:text-white">
-                                <Icon icon="mdi:magnify" class="absolute right-3 top-3.5 text-gray-400 text-xl" />
+                                    :disabled="isLoadingEmployees"
+                                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary dark:text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                <Icon v-if="!isLoadingEmployees" icon="mdi:magnify"
+                                    class="absolute right-3 top-3.5 text-gray-400 text-xl" />
+                                <Icon v-else icon="mdi:loading"
+                                    class="absolute right-3 top-3.5 text-gray-400 text-xl animate-spin" />
 
                                 <!-- Liste déroulante des employés -->
                                 <div v-if="showEmployeeList && filteredEmployees.length > 0"
@@ -291,6 +295,7 @@
 
 <script>
 import { Icon } from "@iconify/vue";
+import PersonnelService from '@/services/PersonnelService';
 
 export default {
     name: "NouvelleDemandeConge",
@@ -301,6 +306,7 @@ export default {
         return {
             searchEmployee: '',
             showEmployeeList: false,
+            isLoadingEmployees: false,
             demande: {
                 employe: null,
                 typeConge: null,
@@ -422,6 +428,40 @@ export default {
         }
     },
     methods: {
+        async loadAllPersonnel() {
+            this.isLoadingEmployees = true;
+            try {
+                const personnels = await PersonnelService.getAllPersonnel();
+
+                // Pour chaque personnel, récupérer le contrat actif
+                const employeesWithContract = await Promise.all(personnels.map(async (personnel) => {
+                    let contratActif = null;
+                    try {
+                        contratActif = await PersonnelService.getContratActif(personnel.idPersonnel);
+                    } catch (e) {
+                        console.warn(`Impossible de récupérer le contrat actif pour ${personnel.nom} ${personnel.prenom}`, e);
+                    }
+
+                    return {
+                        id: personnel.id,
+                        nom: personnel.nom,
+                        prenom: personnel.prenom,
+                        poste: contratActif?.poste?.nom || 'Non défini',
+                        departement: contratActif?.poste?.departement?.libelle || 'Non défini',
+                        photo: personnel.photo || '/assets/img/default-user.png',
+                        email: personnel.email || ''
+                    };
+                }));
+
+                this.employees = employeesWithContract;
+
+            } catch (error) {
+                console.error('Erreur lors du chargement des employés:', error);
+                alert('Impossible de charger la liste des employés. Veuillez réessayer.');
+            } finally {
+                this.isLoadingEmployees = false;
+            }
+        },
         selectEmployee(employee) {
             this.demande.employe = employee;
             this.searchEmployee = '';
@@ -488,6 +528,9 @@ export default {
         }
     },
     mounted() {
+        // Charger les employés depuis l'API au montage du composant
+        this.loadAllPersonnel();
+
         // Fermer la liste déroulante quand on clique ailleurs
         document.addEventListener('click', (e) => {
             if (!this.$el.contains(e.target)) {
@@ -525,5 +568,20 @@ export default {
 
 .employee-list::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* Animation pour l'icône de chargement */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
 }
 </style>

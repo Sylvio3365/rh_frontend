@@ -44,7 +44,16 @@ const PersonnelService = {
         } catch (error) {
             throw error.response?.data || error;
         }
-    }
+    },
+    async getContratActif(idPersonnel) {
+        try {
+            const response = await apiClient.get(`/personnels/${idPersonnel}/contrat/actif`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
 };
 
 export default PersonnelService;
