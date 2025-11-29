@@ -1,4 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
+import ScanPointage from "../views/pointage/ScanPointage.vue";
+import HistoriquePointage from "../views/pointage/HistoriquePointage.vue"
+import PresenceMensuelle from "../views/pointage/PresenceMensuelle.vue";
+import HeuresSupplementaires from "../views/pointage/HeuresSupplementaires.vue";
 
 import Dashboard from "../views/Dashboard.vue";
 import Login from "../views/layouts/auth/Login.vue";
@@ -97,6 +101,26 @@ const routes = [
     component: Page404,
     meta: { title: "Upps! 404" + appname, hideNav: true, requiresAuth: false }, // Public
   },
+  {
+    path: '/pointage',
+    name: 'ScanPointage',
+    component: ScanPointage
+  },
+  {
+    path: '/historique',
+    name: 'HistoriquePointage',
+    component: HistoriquePointage
+  },
+  {
+    path: '/presence',
+    name: 'PresenceMensuelle',
+    component: PresenceMensuelle
+  },
+  {
+    path: '/heures-sup',
+    name: 'HeuresSupplementaires',
+    component: HeuresSupplementaires
+  }
 ];
 
 const router = createRouter({
