@@ -14,7 +14,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4 mb-6">
             <div class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
                 <div class="flex gap-3">
-                    <button @click="$router.push('/conges/nouveau')"
+                    <button @click="$router.push('/conges/demandes')"
                         class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center">
                         <Icon icon="mdi:plus" class="mr-2" />
                         Nouvelle Demande
@@ -107,34 +107,13 @@
                 <table class="w-full">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Employé
-                            </th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Période
-                            </th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Type
-                            </th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Durée
-                            </th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Statut
-                            </th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Workflow
-                            </th>
-                            <th
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                Actions
-                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Employé</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Période</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Durée</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Statut</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Workflow</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -142,7 +121,7 @@
                             class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <img :src="conge.photo" :alt="conge.nom"
+                                    <img :src="conge.photo || '/assets/img/default-user.png'" :alt="conge.nom"
                                         class="h-10 w-10 rounded-full object-cover">
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -155,10 +134,8 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900 dark:text-white">{{ formatDate(conge.dateDebut) }}
-                                </div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">au {{ formatDate(conge.dateFin) }}
-                                </div>
+                                <div class="text-sm text-gray-900 dark:text-white">{{ formatDate(conge.dateDebut) }}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">au {{ formatDate(conge.dateFin) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-medium rounded-full"
@@ -217,8 +194,7 @@
                     Affichage de {{ congesFiltres.length }} sur {{ conges.length }} demandes
                 </div>
                 <div class="flex gap-2">
-                    <button
-                        class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm">Précédent</button>
+                    <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm">Précédent</button>
                     <button class="px-3 py-1 bg-primary text-white rounded text-sm">Suivant</button>
                 </div>
             </div>
@@ -228,12 +204,12 @@
 
 <script>
 import { Icon } from "@iconify/vue";
+import DemandeService from "@/services/DemandeService";
 
 export default {
     name: "ListeConges",
-    components: {
-        Icon,
-    },
+    components: { Icon },
+
     data() {
         return {
             afficherFiltres: false,
@@ -242,89 +218,28 @@ export default {
                 type: '',
                 recherche: ''
             },
-            conges: [
-                {
-                    id: 1,
-                    nom: "Dubois",
-                    prenom: "Marie",
-                    photo: require("@/assets/img/user1.png"),
-                    departement: "IT",
-                    type: "payes",
-                    dateDebut: "2024-12-20",
-                    dateFin: "2024-12-27",
-                    duree: 8,
-                    statut: "en-attente",
-                    motif: "Vacances de Noël en famille",
-                    workflow: [
-                        { id: 1, ordre: 1, nom: 'Soumission', statut: 'termine' },
-                        { id: 2, ordre: 2, nom: 'Manager', statut: 'encours' },
-                        { id: 3, ordre: 3, nom: 'RH', statut: 'attente' }
-                    ]
-                },
-                {
-                    id: 2,
-                    nom: "Martin",
-                    prenom: "Pierre",
-                    photo: require("@/assets/img/user2.png"),
-                    departement: "Management",
-                    type: "maladie",
-                    dateDebut: "2024-11-15",
-                    dateFin: "2024-11-18",
-                    duree: 4,
-                    statut: "valide",
-                    motif: "Grippe saisonnière",
-                    workflow: [
-                        { id: 1, ordre: 1, nom: 'Soumission', statut: 'termine' },
-                        { id: 2, ordre: 2, nom: 'Manager', statut: 'termine' },
-                        { id: 3, ordre: 3, nom: 'RH', statut: 'termine' }
-                    ]
-                },
-                {
-                    id: 3,
-                    nom: "Laurent",
-                    prenom: "Sophie",
-                    photo: require("@/assets/img/user3.png"),
-                    departement: "RH",
-                    type: "exceptionnel",
-                    dateDebut: "2024-12-05",
-                    dateFin: "2024-12-06",
-                    duree: 2,
-                    statut: "refuse",
-                    motif: "Mariage frère",
-                    workflow: [
-                        { id: 1, ordre: 1, nom: 'Soumission', statut: 'termine' },
-                        { id: 2, ordre: 2, nom: 'Manager', statut: 'termine' },
-                        { id: 3, ordre: 3, nom: 'RH', statut: 'termine' }
-                    ]
-                }
-            ]
+            conges: []
         };
     },
-    computed: {
-        congesFiltres() {
-            return this.conges.filter(conge => {
-                const matchStatut = !this.filtres.statut || conge.statut === this.filtres.statut;
-                const matchType = !this.filtres.type || conge.type === this.filtres.type;
-                const matchRecherche = !this.filtres.recherche ||
-                    `${conge.prenom} ${conge.nom}`.toLowerCase().includes(this.filtres.recherche.toLowerCase()) ||
-                    conge.motif.toLowerCase().includes(this.filtres.recherche.toLowerCase());
 
-                return matchStatut && matchType && matchRecherche;
-            });
-        },
-        statistiques() {
-            return {
-                total: this.conges.length,
-                enAttente: this.conges.filter(c => c.statut === 'en-attente').length,
-                valides: this.conges.filter(c => c.statut === 'valide').length,
-                refuses: this.conges.filter(c => c.statut === 'refuse').length
-            };
-        }
+    mounted() {
+        this.chargerDemandes();
     },
+
     methods: {
+        async chargerDemandes() {
+            try {
+                const response = await DemandeService.getAllDemande();
+                this.conges = response.data;
+            } catch (error) {
+                console.error("Erreur lors du chargement des demandes :", error);
+            }
+        },
+
         formatDate(date) {
             return new Date(date).toLocaleDateString('fr-FR');
         },
+
         getCouleurType(type) {
             const couleurs = {
                 'payes': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -334,6 +249,7 @@ export default {
             };
             return couleurs[type] || 'bg-gray-100 text-gray-800';
         },
+
         getNomType(type) {
             const noms = {
                 'payes': 'Congés Payés',
@@ -343,6 +259,7 @@ export default {
             };
             return noms[type] || type;
         },
+
         getCouleurStatut(statut) {
             const couleurs = {
                 'en-attente': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
@@ -352,6 +269,7 @@ export default {
             };
             return couleurs[statut] || 'bg-gray-100 text-gray-800';
         },
+
         getNomStatut(statut) {
             const noms = {
                 'en-attente': 'En attente',
@@ -361,25 +279,47 @@ export default {
             };
             return noms[statut] || statut;
         },
+
         reinitialiserFiltres() {
-            this.filtres = {
-                statut: '',
-                type: '',
-                recherche: ''
-            };
+            this.filtres = { statut: '', type: '', recherche: '' };
         },
+
         validerConge(id) {
             if (confirm('Confirmer la validation de cette demande ?')) {
                 alert(`Demande ${id} validée avec succès`);
             }
         },
+
         refuserConge(id) {
             if (confirm('Confirmer le refus de cette demande ?')) {
                 alert(`Demande ${id} refusée`);
             }
         },
+
         voirDetails(id) {
             this.$router.push(`/conges/${id}`);
+        }
+    },
+
+    computed: {
+        congesFiltres() {
+            return this.conges.filter(conge => {
+                const matchStatut = !this.filtres.statut || conge.statut === this.filtres.statut;
+                const matchType = !this.filtres.type || conge.type === this.filtres.type;
+                const matchRecherche = !this.filtres.recherche ||
+                    `${conge.prenom} ${conge.nom}`.toLowerCase().includes(this.filtres.recherche.toLowerCase()) ||
+                    (conge.motif && conge.motif.toLowerCase().includes(this.filtres.recherche.toLowerCase()));
+                return matchStatut && matchType && matchRecherche;
+            });
+        },
+
+        statistiques() {
+            return {
+                total: this.conges.length,
+                enAttente: this.conges.filter(c => c.statut === 'en-attente').length,
+                valides: this.conges.filter(c => c.statut === 'valide').length,
+                refuses: this.conges.filter(c => c.statut === 'refuse').length
+            };
         }
     }
 };
