@@ -6,27 +6,12 @@
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           🕐 Pointage
         </h1>
-        <p class="text-gray-600 dark:text-gray-400">
+        <!-- <p class="text-gray-600 dark:text-gray-400">
           Scanner le QR code ou entrer l'ID manuellement
-        </p>
+        </p> -->
       </div>
 
-      <!-- Scanner QR Code -->
-      <div v-if="!personnelSelectionne" class="mb-6">
-        <QrScanner @scanned="onQrScanned" />
-      </div>
-
-      <!-- Séparateur OU -->
-      <div v-if="!personnelSelectionne" class="relative my-8">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="px-4 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 font-medium">
-            OU
-          </span>
-        </div>
-      </div>
+      
 
       <!-- Saisie manuelle -->
       <div v-if="!personnelSelectionne" 
