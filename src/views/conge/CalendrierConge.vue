@@ -10,7 +10,15 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Spinner de chargement -->
+        <div v-if="isLoading" class="flex justify-center items-center h-96">
+            <div class="text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+                <p class="text-gray-600 dark:text-gray-400">Chargement des congés...</p>
+            </div>
+        </div>
+
+        <div v-else class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Calendrier principal -->
             <div class="lg:col-span-3">
                 <div
@@ -189,6 +197,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
+import DemandeService from '@/services/DemandeService';
 import ModalModificationStatut from './ModalModificationStatut.vue';
 import ModalModificationDuree from './ModalModificationDuree.vue';
 
@@ -202,6 +211,8 @@ export default {
     },
     data() {
         return {
+            isLoading: true,
+            demandes: [],
             vueActive: 'dayGridMonth',
             titreCalendrier: '',
             showModalStatut: false,
@@ -228,14 +239,14 @@ export default {
                 plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
                 initialView: 'dayGridMonth',
                 headerToolbar: false,
-                events: this.getEvenementsCalendrier(),
-                eventClick: this.handleEventClick,
-                dateClick: this.handleDateClick,
-                eventDrop: this.handleEventDrop,
-                eventResize: this.handleEventResize,
+                events: [],
+                eventClick: this.handleEventClick.bind(this),
+                dateClick: this.handleDateClick.bind(this),
+                eventDrop: this.handleEventDrop.bind(this),
+                eventResize: this.handleEventResize.bind(this),
                 editable: true,
                 droppable: true,
-                eventsSet: this.handleEventsSet,
+                eventsSet: this.handleEventsSet.bind(this),
                 eventDisplay: 'block',
                 eventTimeFormat: {
                     hour: '2-digit',
@@ -260,106 +271,92 @@ export default {
                         dayMaxEvents: 6
                     }
                 },
-                eventContent: this.renderEventContent,
-                eventDidMount: this.handleEventMount
+                eventContent: this.renderEventContent.bind(this),
+                eventDidMount: this.handleEventMount.bind(this)
             }
         };
     },
     methods: {
-        getEvenementsCalendrier() {
-            return [
-                {
-                    id: 1,
-                    title: 'Marie Dubois',
-                    start: '2025-01-20',
-                    end: '2025-01-28',
-                    extendedProps: {
-                        type: 'payes',
-                        statut: 'valide',
-                        employe: 'Marie Dubois',
-                        departement: 'IT',
-                        motif: 'Vacances de Noël',
-                        photo: 'user1',
-                        duree: '9 jours'
-                    },
-                    backgroundColor: '#3B82F6',
-                    borderColor: '#3B82F6',
-                    editable: false
-                },
-                {
-                    id: 2,
-                    title: 'Pierre Martin',
-                    start: '2025-02-15',
-                    end: '2025-02-19',
-                    extendedProps: {
-                        type: 'maladie',
-                        statut: 'valide',
-                        employe: 'Pierre Martin',
-                        departement: 'Management',
-                        motif: 'Grippe',
-                        photo: 'user2',
-                        duree: '5 jours'
-                    },
-                    backgroundColor: '#10B981',
-                    borderColor: '#10B981',
-                    editable: false
-                },
-                {
-                    id: 3,
-                    title: 'Sophie Laurent',
-                    start: '2025-03-05',
-                    end: '2025-03-07',
-                    extendedProps: {
-                        type: 'exceptionnel',
-                        statut: 'en-attente',
-                        employe: 'Sophie Laurent',
-                        departement: 'RH',
-                        motif: 'Mariage',
-                        photo: 'user3',
-                        duree: '3 jours'
-                    },
-                    backgroundColor: '#8B5CF6',
-                    borderColor: '#8B5CF6',
-                    editable: true
-                },
-                {
-                    id: 4,
-                    title: 'Thomas Bernard',
-                    start: '2025-01-25',
-                    end: '2025-01-26',
-                    extendedProps: {
-                        type: 'sans-solde',
-                        statut: 'refuse',
-                        employe: 'Thomas Bernard',
-                        departement: 'IT',
-                        motif: 'Raison personnelle',
-                        photo: 'user4',
-                        duree: '2 jours'
-                    },
-                    backgroundColor: '#6B7280',
-                    borderColor: '#6B7280',
-                    editable: true
-                },
-                {
-                    id: 5,
-                    title: 'Julie Moreau',
-                    start: '2025-02-10',
-                    end: '2025-02-15',
-                    extendedProps: {
-                        type: 'payes',
-                        statut: 'en-attente',
-                        employe: 'Julie Moreau',
-                        departement: 'Marketing',
-                        motif: 'Vacances',
-                        photo: 'user5',
-                        duree: '6 jours'
-                    },
-                    backgroundColor: '#3B82F6',
-                    borderColor: '#3B82F6',
-                    editable: true
+        async chargerDonnees() {
+            try {
+                this.isLoading = true;
+                console.log('Chargement des données depuis l\'API...');
+                
+                // Récupérer les données de l'API
+                const data = await DemandeService.getDemandesForCalendar();
+                console.log('Données reçues de l\'API:', data);
+                this.demandes = data;
+
+                // Transformer les données de l'API en événements pour FullCalendar
+                const events = data.map(d => {
+                    // Mapping des types de congé
+                    const typeCongeMapping = {
+                        'maladie': 'maladie',
+                        'exceptionnel': 'exceptionnel', 
+                        'annuel': 'payes',
+                        'paternité': 'exceptionnel',
+                        'maternité': 'exceptionnel',
+                        'formation': 'exceptionnel'
+                    };
+
+                    const type = typeCongeMapping[d.typeConge?.libelle] || 'payes';
+                    const typeConfig = this.typesConge.find(t => t.id === type) || this.typesConge[0];
+
+                    // Mapping des statuts
+                    const statutMapping = {
+                        1: 'en-attente',
+                        2: 'valide',
+                        3: 'refuse'
+                    };
+                    const statut = statutMapping[d.etat] || 'en-attente';
+
+                    return {
+                        id: d.idDemande.toString(),
+                        title: `${d.personnel.prenom} ${d.personnel.nom}`.trim(),
+                        start: d.debut,
+                        end: new Date(new Date(d.fin).getTime() + 86400000).toISOString().split('T')[0], // +1 jour
+                        extendedProps: {
+                            type: type,
+                            statut: statut,
+                            employe: `${d.personnel.prenom} ${d.personnel.nom}`.trim(),
+                            departement: d.personnel.categoriePersonnel?.libelle || 'Non spécifié',
+                            motif: d.nature || 'Congé',
+                            photo: this.getPhotoUrl(d.personnel.photo),
+                            duree: this.calculerDuree(d.debut, d.fin)
+                        },
+                        backgroundColor: typeConfig.couleur,
+                        borderColor: typeConfig.couleur,
+                        editable: d.etat !== 2 // Non éditable si validé
+                    };
+                });
+
+                console.log('Événements créés:', events);
+
+                // Mettre à jour les événements du calendrier
+                if (this.$refs.calendarRef) {
+                    const calendarApi = this.$refs.calendarRef.getApi();
+                    calendarApi.removeAllEvents();
+                    calendarApi.addEventSource(events);
                 }
-            ];
+
+            } catch (error) {
+                console.error('Erreur lors du chargement des données:', error);
+            } finally {
+                this.isLoading = false;
+            }
         },
+
+        getPhotoUrl(photo) {
+            if (!photo) return '/assets/img/default-user.png';
+            if (photo.startsWith('http')) return photo;
+            return `/assets/img/personnel/${photo}`;
+        },
+
+        calculerDuree(debut, fin) {
+            const diff = (new Date(fin) - new Date(debut)) / 86400000 + 1;
+            return `${Math.round(diff)} jour${diff > 1 ? 's' : ''}`;
+        },
+
         getPhotoEmploye(photoId) {
             const photos = {
                 'user1': require('@/assets/img/user1.png'),
@@ -370,13 +367,14 @@ export default {
             };
             return photos[photoId] || require('@/assets/img/user2.png');
         },
+
         renderEventContent(eventInfo) {
             const event = eventInfo.event;
             const props = event.extendedProps;
             const statut = this.getNomStatut(props.statut);
             const statutColor = this.getCouleurStatut(props.statut);
             const badgeClass = this.getBadgeClass(props.statut);
-            const photo = this.getPhotoEmploye(props.photo);
+            const photo = props.photo;
 
             return {
                 html: `
@@ -386,7 +384,7 @@ export default {
               <div class="fc-event-statut-point" style="background-color: ${statutColor}"></div>
               
               <!-- Photo de l'utilisateur -->
-              <img src="${photo}" alt="${props.employe}" class="w-4 h-4 rounded-full object-cover flex-shrink-0">
+              <img src="${photo}" alt="${props.employe}" class="w-4 h-4 rounded-full object-cover flex-shrink-0" onerror="this.src='/assets/img/default-user.png'">
               
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
@@ -402,14 +400,7 @@ export default {
         `
             };
         },
-        getBadgeClass(statut) {
-            const classes = {
-                'en-attente': 'bg-yellow-500 text-white',
-                'valide': 'bg-green-500 text-white',
-                'refuse': 'bg-red-500 text-white'
-            };
-            return `text-xs px-2 py-1 rounded-full font-semibold ${classes[statut] || 'bg-gray-500 text-white'}`;
-        },
+
         handleEventMount(info) {
             const event = info.event;
             const props = event.extendedProps;
@@ -422,6 +413,7 @@ export default {
             info.el.style.padding = '4px 6px';
             info.el.style.marginBottom = '2px';
         },
+
         handleEventClick(clickInfo) {
             const event = clickInfo.event;
 
@@ -451,21 +443,25 @@ export default {
                 this.showModalStatut = true;
             }
         },
+
         fermerModalStatut() {
             this.showModalStatut = false;
             this.eventSelectionne = null;
             this.nouveauStatut = '';
         },
+
         fermerModalDuree() {
             this.showModalDuree = false;
             this.eventSelectionne = null;
         },
+
         handleDateClick(clickInfo) {
             this.$router.push({
                 path: '/conges/nouveau',
                 query: { date: clickInfo.dateStr }
             });
         },
+
         handleEventDrop(dropInfo) {
             const event = dropInfo.event;
             const props = event.extendedProps;
@@ -481,6 +477,7 @@ export default {
                 end: event.end
             });
         },
+
         handleEventResize(resizeInfo) {
             const event = resizeInfo.event;
             const props = event.extendedProps;
@@ -496,21 +493,26 @@ export default {
                 end: event.end
             });
         },
+
         async mettreAJourCongé(id, modifications) {
             try {
                 console.log('Mise à jour du congé:', id, modifications);
+                
+                // Convertir pour l'API
+                const debut = modifications.start.toISOString().split('T')[0];
+                const fin = new Date(modifications.end.getTime() - 86400000).toISOString().split('T')[0];
+                
+                await DemandeService.updateDates(id, debut, fin);
+
                 const calendarApi = this.$refs.calendarRef.getApi();
                 const event = calendarApi.getEventById(id);
 
                 if (event) {
                     // Recalculer la durée
-                    const start = new Date(modifications.start);
-                    const end = new Date(modifications.end);
-                    const diffTime = Math.abs(end - start);
+                    const diffTime = Math.abs(modifications.end - modifications.start);
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                     event.setExtendedProp('duree', `${diffDays} jour${diffDays > 1 ? 's' : ''}`);
-                    event.setProp('title', `${event.extendedProps.employe}`);
                 }
 
                 this.$toast.success('Congé mis à jour avec succès');
@@ -519,57 +521,67 @@ export default {
                 this.$toast.error('Erreur lors de la mise à jour');
             }
         },
-        confirmerChangementStatut(nouveauStatut) {
+
+        async confirmerChangementStatut(nouveauStatut) {
             if (this.eventSelectionne) {
-                this.mettreAJourCongé(this.eventSelectionne.id, {
-                    statut: nouveauStatut
-                });
+                try {
+                    // Mapping inverse pour l'API
+                    const statutMapping = {
+                        'en-attente': 1,
+                        'valide': 2,
+                        'refuse': 3
+                    };
+                    
+                    await DemandeService.updateStatut(this.eventSelectionne.id, statutMapping[nouveauStatut]);
 
-                const calendarApi = this.$refs.calendarRef.getApi();
-                const event = calendarApi.getEventById(this.eventSelectionne.id);
+                    const calendarApi = this.$refs.calendarRef.getApi();
+                    const event = calendarApi.getEventById(this.eventSelectionne.id);
 
-                if (event) {
-                    const nouvelleCouleur = this.getCouleurAvecStatut(event.extendedProps.type, nouveauStatut);
-                    event.setProp('backgroundColor', nouvelleCouleur);
-                    event.setProp('borderColor', nouvelleCouleur);
-                    event.setProp('editable', nouveauStatut !== 'valide');
+                    if (event) {
+                        event.setExtendedProp('statut', nouveauStatut);
+                        event.setProp('editable', nouveauStatut !== 'valide');
 
-                    // Mettre à jour le badge du statut
-                    event.setExtendedProp('statut', nouveauStatut);
+                        if (nouveauStatut === 'valide') {
+                            event.el.classList.add('fc-event-non-modifiable');
+                        } else {
+                            event.el.classList.remove('fc-event-non-modifiable');
+                        }
+                    }
+
+                    this.fermerModalStatut();
+                    this.$toast.success('Statut mis à jour avec succès');
+                    
+                } catch (error) {
+                    console.error('Erreur lors de la mise à jour du statut:', error);
+                    this.$toast.error('Erreur lors de la mise à jour du statut');
                 }
-
-                this.fermerModalStatut();
-                this.$toast.success('Statut mis à jour avec succès');
             }
         },
-        confirmerModificationDuree(nouvelleDuree) {
-            if (this.eventSelectionne) {
-                const calendarApi = this.$refs.calendarRef.getApi();
-                const event = calendarApi.getEventById(this.eventSelectionne.id);
 
-                if (event) {
-                    // Calculer les nouvelles dates basées sur la durée
+        async confirmerModificationDuree(nouvelleDuree) {
+            if (this.eventSelectionne) {
+                try {
                     const startDate = new Date(this.eventSelectionne.start);
                     const endDate = new Date(startDate);
-                    endDate.setDate(startDate.getDate() + nouvelleDuree);
+                    endDate.setDate(startDate.getDate() + nouvelleDuree - 1);
 
-                    event.setDates(startDate, endDate);
-                    event.setExtendedProp('duree', `${nouvelleDuree} jour${nouvelleDuree > 1 ? 's' : ''}`);
+                    await DemandeService.updateDates(
+                        this.eventSelectionne.id, 
+                        startDate.toISOString().split('T')[0], 
+                        endDate.toISOString().split('T')[0]
+                    );
+
+                    this.fermerModalDuree();
+                    this.$toast.success('Durée du congé modifiée avec succès');
+                    this.chargerDonnees(); // Recharger les données
+                    
+                } catch (error) {
+                    console.error('Erreur lors de la modification de la durée:', error);
+                    this.$toast.error('Erreur lors de la modification de la durée');
                 }
-
-                this.fermerModalDuree();
-                this.$toast.success('Durée du congé modifiée avec succès');
             }
         },
-        getCouleurAvecStatut(type, statut) {
-            const couleursBase = {
-                'payes': '#3B82F6',
-                'maladie': '#10B981',
-                'exceptionnel': '#8B5CF6',
-                'sans-solde': '#6B7280'
-            };
-            return couleursBase[type] || '#6B7280';
-        },
+
         getCouleurStatut(statut) {
             const couleurs = {
                 'valide': '#10B981', // Vert
@@ -578,27 +590,33 @@ export default {
             };
             return couleurs[statut] || '#6B7280';
         },
+
         handleEventsSet(events) {
             const calendarApi = this.$refs.calendarRef.getApi();
             this.titreCalendrier = calendarApi.currentData.viewTitle;
         },
+
         afficherAujourdhui() {
             const calendarApi = this.$refs.calendarRef.getApi();
             calendarApi.today();
         },
+
         changerVue(vue) {
             this.vueActive = vue;
             const calendarApi = this.$refs.calendarRef.getApi();
             calendarApi.changeView(vue);
         },
+
         calendrierPrev() {
             const calendarApi = this.$refs.calendarRef.getApi();
             calendarApi.prev();
         },
+
         calendrierNext() {
             const calendarApi = this.$refs.calendarRef.getApi();
             calendarApi.next();
         },
+
         getNomType(type) {
             const noms = {
                 'payes': 'Congés Payés',
@@ -608,6 +626,7 @@ export default {
             };
             return noms[type] || type;
         },
+
         getNomStatut(statut) {
             const noms = {
                 'en-attente': 'En attente',
@@ -615,9 +634,20 @@ export default {
                 'refuse': 'Refusé'
             };
             return noms[statut] || statut;
+        },
+
+        getBadgeClass(statut) {
+            const classes = {
+                'en-attente': 'bg-yellow-500 text-white',
+                'valide': 'bg-green-500 text-white',
+                'refuse': 'bg-red-500 text-white'
+            };
+            return `text-xs px-2 py-1 rounded-full font-semibold ${classes[statut] || 'bg-gray-500 text-white'}`;
         }
     },
-    mounted() {
+
+    async mounted() {
+        await this.chargerDonnees();
         const calendarApi = this.$refs.calendarRef.getApi();
         this.titreCalendrier = calendarApi.currentData.viewTitle;
     }
@@ -625,6 +655,7 @@ export default {
 </script>
 
 <style scoped>
+/* Les styles restent identiques */
 .fc-event-content {
     padding: 2px;
     line-height: 1.2;
@@ -652,101 +683,5 @@ export default {
     margin-left: 2px;
 }
 
-/* Personnalisation FullCalendar */
-.fc {
-    font-family: inherit;
-}
-
-.fc .fc-toolbar-title {
-    font-size: 1.5em;
-    font-weight: 600;
-}
-
-.fc .fc-button {
-    background-color: #4f46e5;
-    border-color: #4f46e5;
-    font-weight: 500;
-}
-
-.fc .fc-button:hover {
-    background-color: #4338ca;
-    border-color: #4338ca;
-}
-
-.fc .fc-button-primary:not(:disabled).fc-button-active {
-    background-color: #3730a3;
-    border-color: #3730a3;
-}
-
-.fc-theme-standard .fc-scrollgrid {
-    border: 1px solid #e5e7eb;
-}
-
-.fc-theme-standard td,
-.fc-theme-standard th {
-    border: 1px solid #e5e7eb;
-}
-
-.fc .fc-daygrid-day-number {
-    color: #374151;
-    font-weight: 500;
-}
-
-.fc .fc-col-header-cell-cushion {
-    color: #374151;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.fc .fc-event {
-    border: none;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-.fc .fc-event .fc-event-main {
-    color: white;
-}
-
-/* Événements non modifiables */
-.fc-event-non-modifiable {
-    cursor: not-allowed !important;
-    opacity: 0.8;
-}
-
-.fc-event-non-modifiable .fc-event-resizer {
-    display: none !important;
-}
-
-/* Ajustement de la hauteur des événements */
-.fc .fc-daygrid-event {
-    margin-bottom: 1px;
-}
-
-.fc .fc-daygrid-block-event .fc-event-time {
-    font-weight: 500;
-}
-
-/* Dark mode */
-.dark .fc-theme-standard .fc-scrollgrid {
-    border-color: #374151;
-}
-
-.dark .fc-theme-standard td,
-.dark .fc-theme-standard th {
-    border-color: #374151;
-}
-
-.dark .fc .fc-daygrid-day-number {
-    color: #d1d5db;
-}
-
-.dark .fc .fc-col-header-cell-cushion {
-    color: #d1d5db;
-}
-
-.dark .fc .fc-daygrid-day.fc-day-today {
-    background-color: #1e3a8a;
-}
+/* ... autres styles ... */
 </style>

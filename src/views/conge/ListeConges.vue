@@ -32,26 +32,27 @@
                         <select v-model="filtres.statut"
                             class="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700">
                             <option value="">Tous les statuts</option>
-                            <option value="en-attente">En attente</option>
-                            <option value="valide">Validé</option>
-                            <option value="refuse">Refusé</option>
-                            <option value="annule">Annulé</option>
+                            <option value="1">En attente</option>
+                            <option value="2">Validé</option>
+                            <option value="3">Refusé</option>
+                            <option value="4">Annulé</option>
                         </select>
 
                         <select v-model="filtres.type"
                             class="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700">
                             <option value="">Tous les types</option>
-                            <option value="payes">Congés Payés</option>
-                            <option value="maladie">Congés Maladie</option>
-                            <option value="exceptionnel">Congés Exceptionnels</option>
-                            <option value="sans-solde">Sans Solde</option>
+                            <option value="maladie">Maladie</option>
+                            <option value="exceptionnel">Exceptionnel</option>
+                            <option value="annuel">Annuel</option>
+                            <option value="paternité">Paternité</option>
+                            <option value="formation">Formation</option>
                         </select>
 
-                        <input v-model="filtres.recherche" type="text" placeholder="Rechercher..."
+                        <input v-model="filtres.recherche" type="text" placeholder="Rechercher un employé..."
                             class="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700">
 
                         <button @click="reinitialiserFiltres"
-                            class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                            class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
                             Réinitialiser
                         </button>
                     </div>
@@ -73,8 +74,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ statistiques.enAttente
-                            }}</div>
+                        <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ statistiques.enAttente }}</div>
                         <div class="text-sm text-gray-500 dark:text-gray-400">En attente</div>
                     </div>
                     <Icon icon="mdi:clock-outline" class="text-yellow-500 text-xl" />
@@ -83,8 +83,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ statistiques.valides }}
-                        </div>
+                        <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ statistiques.valides }}</div>
                         <div class="text-sm text-gray-500 dark:text-gray-400">Validés</div>
                     </div>
                     <Icon icon="mdi:check-circle" class="text-green-500 text-xl" />
@@ -101,8 +100,24 @@
             </div>
         </div>
 
+        <!-- Message si aucune donnée -->
+        <div v-if="isLoading" class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-8 text-center">
+            <Icon icon="mdi:loading" class="text-4xl text-primary animate-spin mx-auto mb-4" />
+            <p class="text-gray-600 dark:text-gray-400">Chargement des demandes...</p>
+        </div>
+
+        <div v-else-if="congesFiltres.length === 0" class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-8 text-center">
+            <Icon icon="mdi:calendar-remove" class="text-6xl text-gray-400 mx-auto mb-4" />
+            <p class="text-gray-600 dark:text-gray-400" v-if="conges.length === 0">
+                Aucune demande de congé pour le moment
+            </p>
+            <p class="text-gray-600 dark:text-gray-400" v-else>
+                Aucune demande ne correspond aux filtres sélectionnés
+            </p>
+        </div>
+
         <!-- Liste des congés -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+        <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50 dark:bg-gray-700">
@@ -117,69 +132,70 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                        <tr v-for="conge in congesFiltres" :key="conge.id"
+                        <tr v-for="conge in congesFiltres" :key="conge.idDemande"
                             class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <img :src="conge.photo || '/assets/img/default-user.png'" :alt="conge.nom"
-                                        class="h-10 w-10 rounded-full object-cover">
+                                    <img :src="getPhotoUrl(conge.personnel?.photo)" 
+                                         :alt="conge.personnel?.nom || 'Employé'"
+                                         class="h-10 w-10 rounded-full object-cover">
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                            {{ conge.prenom }} {{ conge.nom }}
+                                            {{ conge.personnel?.prenom }} {{ conge.personnel?.nom }}
                                         </div>
                                         <div class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ conge.departement }}
+                                            {{ conge.personnel?.categoriePersonnel?.libelle || 'N/A' }}
                                         </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900 dark:text-white">{{ formatDate(conge.dateDebut) }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">au {{ formatDate(conge.dateFin) }}</div>
+                                <div class="text-sm text-gray-900 dark:text-white">{{ formatDate(conge.debut) }}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">au {{ formatDate(conge.fin) }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-medium rounded-full"
-                                    :class="getCouleurType(conge.type)">
-                                    {{ getNomType(conge.type) }}
+                                    :class="getCouleurType(conge.typeConge?.libelle)">
+                                    {{ getNomType(conge.typeConge?.libelle) }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ conge.duree }} jour(s)
+                                {{ calculerDuree(conge.debut, conge.fin) }} jour(s)
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 text-xs font-medium rounded-full"
-                                    :class="getCouleurStatut(conge.statut)">
-                                    {{ getNomStatut(conge.statut) }}
+                                    :class="getCouleurStatut(conge.etat)">
+                                    {{ getNomStatut(conge.etat) }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex -space-x-2">
-                                    <div v-for="etape in conge.workflow" :key="etape.id" :class="[
+                                    <div v-for="(etape, index) in getWorkflow(conge.etat)" :key="index" :class="[
                                         'w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs',
                                         etape.statut === 'termine' ? 'bg-green-500 text-white' :
                                             etape.statut === 'encours' ? 'bg-primary text-white' :
                                                 'bg-gray-300 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
                                     ]" :title="etape.nom">
-                                        {{ etape.ordre }}
+                                        {{ index + 1 }}
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex gap-2">
-                                    <button v-if="conge.statut === 'en-attente'" @click="validerConge(conge.id)"
-                                        class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                                    <button v-if="conge.etat === 1" @click="validerConge(conge.idDemande)"
+                                        class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
                                         title="Valider">
-                                        <Icon icon="mdi:check" />
+                                        <Icon icon="mdi:check" class="w-5 h-5" />
                                     </button>
-                                    <button v-if="conge.statut === 'en-attente'" @click="refuserConge(conge.id)"
-                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                    <button v-if="conge.etat === 1" @click="refuserConge(conge.idDemande)"
+                                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                                         title="Refuser">
-                                        <Icon icon="mdi:close" />
+                                        <Icon icon="mdi:close" class="w-5 h-5" />
                                     </button>
-                                    <button @click="voirDetails(conge.id)"
-                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                    <button @click="voirDetails(conge.idDemande)"
+                                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                         title="Détails">
-                                        <Icon icon="mdi:eye" />
+                                        <Icon icon="mdi:eye" class="w-5 h-5" />
                                     </button>
                                 </div>
                             </td>
@@ -194,8 +210,8 @@
                     Affichage de {{ congesFiltres.length }} sur {{ conges.length }} demandes
                 </div>
                 <div class="flex gap-2">
-                    <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm">Précédent</button>
-                    <button class="px-3 py-1 bg-primary text-white rounded text-sm">Suivant</button>
+                    <button class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-50 dark:hover:bg-gray-700">Précédent</button>
+                    <button class="px-3 py-1 bg-primary text-white rounded text-sm hover:bg-primary/90">Suivant</button>
                 </div>
             </div>
         </div>
@@ -213,6 +229,7 @@ export default {
     data() {
         return {
             afficherFiltres: false,
+            isLoading: false,
             filtres: {
                 statut: '',
                 type: '',
@@ -228,71 +245,123 @@ export default {
 
     methods: {
         async chargerDemandes() {
+            this.isLoading = true;
             try {
-                const response = await DemandeService.getAllDemande();
-                this.conges = response.data;
+                const response = await DemandeService.getAllDemandes();
+                console.log('Demandes chargées:', response);
+                this.conges = Array.isArray(response) ? response : [];
             } catch (error) {
-                console.error("Erreur lors du chargement des demandes :", error);
+                console.error("Erreur lors du chargement des demandes:", error);
+                alert("Impossible de charger les demandes de congé. Veuillez réessayer.");
+                this.conges = [];
+            } finally {
+                this.isLoading = false;
             }
         },
 
+        getPhotoUrl(photo) {
+            if (!photo) return '/assets/img/default-user.png';
+            if (photo.startsWith('http')) return photo;
+            return `/assets/img/personnel/${photo}`;
+        },
+
+        calculerDuree(dateDebut, dateFin) {
+            if (!dateDebut || !dateFin) return 0;
+            const debut = new Date(dateDebut);
+            const fin = new Date(dateFin);
+            const diffTime = Math.abs(fin - debut);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        },
+
         formatDate(date) {
+            if (!date) return 'N/A';
             return new Date(date).toLocaleDateString('fr-FR');
         },
 
-        getCouleurType(type) {
+        getCouleurType(libelle) {
+            if (!libelle) return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+            
             const couleurs = {
-                'payes': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-                'maladie': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-                'exceptionnel': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-                'sans-solde': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                'maternité': 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+                'paternité': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                'annuel': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                'maladie': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                'formation': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+                'exceptionnel': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
             };
-            return couleurs[type] || 'bg-gray-100 text-gray-800';
+            return couleurs[libelle.toLowerCase()] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
         },
 
-        getNomType(type) {
+        getNomType(libelle) {
+            if (!libelle) return 'N/A';
+            
             const noms = {
-                'payes': 'Congés Payés',
-                'maladie': 'Congés Maladie',
-                'exceptionnel': 'Exceptionnels',
-                'sans-solde': 'Sans Solde'
+                'maladie': 'Maladie',
+                'exceptionnel': 'Exceptionnel',
+                'annuel': 'Annuel',
+                'paternité': 'Paternité',
+                'formation': 'Formation'
             };
-            return noms[type] || type;
+            return noms[libelle] || libelle;
         },
 
-        getCouleurStatut(statut) {
+        getCouleurStatut(etat) {
             const couleurs = {
-                'en-attente': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-                'valide': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-                'refuse': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-                'annule': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                1: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                2: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                3: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                4: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
             };
-            return couleurs[statut] || 'bg-gray-100 text-gray-800';
+            return couleurs[etat] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
         },
 
-        getNomStatut(statut) {
+        getNomStatut(etat) {
             const noms = {
-                'en-attente': 'En attente',
-                'valide': 'Validé',
-                'refuse': 'Refusé',
-                'annule': 'Annulé'
+                1: 'En attente',
+                2: 'Validé',
+                3: 'Refusé',
+                4: 'Annulé'
             };
-            return noms[statut] || statut;
+            return noms[etat] || 'Inconnu';
+        },
+
+        getWorkflow(etat) {
+            const workflow = [
+                { nom: 'Soumission', statut: 'termine' },
+                { nom: 'Validation Manager', statut: etat === 1 ? 'encours' : 'termine' },
+                { nom: 'Validation RH', statut: etat === 2 ? 'termine' : 'attente' },
+                { nom: 'Approbation', statut: etat === 2 ? 'termine' : 'attente' }
+            ];
+            return workflow;
         },
 
         reinitialiserFiltres() {
             this.filtres = { statut: '', type: '', recherche: '' };
         },
 
-        validerConge(id) {
+        async validerConge(id) {
             if (confirm('Confirmer la validation de cette demande ?')) {
-                alert(`Demande ${id} validée avec succès`);
+                try {
+                    await DemandeService.updateStatut(id, 2); // 2 pour valider
+                    this.$toast.success('Demande validée avec succès');
+                    await this.chargerDemandes();
+                } catch (error) {
+                    console.error('Erreur lors de la validation:', error);
+                    this.$toast.error('Erreur lors de la validation de la demande');
+                }
             }
         },
 
-        refuserConge(id) {
+        async refuserConge(id) {
             if (confirm('Confirmer le refus de cette demande ?')) {
-                alert(`Demande ${id} refusée`);
+                try {
+                    await DemandeService.updateStatut(id, 3); // 3 pour refuser
+                    this.$toast.success('Demande refusée');
+                    await this.chargerDemandes();
+                } catch (error) {
+                    console.error('Erreur lors du refus:', error);
+                    this.$toast.error('Erreur lors du refus de la demande');
+                }
             }
         },
 
@@ -303,22 +372,39 @@ export default {
 
     computed: {
         congesFiltres() {
-            return this.conges.filter(conge => {
-                const matchStatut = !this.filtres.statut || conge.statut === this.filtres.statut;
-                const matchType = !this.filtres.type || conge.type === this.filtres.type;
-                const matchRecherche = !this.filtres.recherche ||
-                    `${conge.prenom} ${conge.nom}`.toLowerCase().includes(this.filtres.recherche.toLowerCase()) ||
-                    (conge.motif && conge.motif.toLowerCase().includes(this.filtres.recherche.toLowerCase()));
-                return matchStatut && matchType && matchRecherche;
-            });
+            let filtered = this.conges;
+
+            // Filtre par statut
+            if (this.filtres.statut) {
+                filtered = filtered.filter(conge => conge.etat === parseInt(this.filtres.statut));
+            }
+
+            // Filtre par type
+            if (this.filtres.type) {
+                filtered = filtered.filter(conge => 
+                    conge.typeConge?.libelle?.toLowerCase() === this.filtres.type.toLowerCase()
+                );
+            }
+
+            // Filtre par recherche
+            if (this.filtres.recherche) {
+                const searchTerm = this.filtres.recherche.toLowerCase();
+                filtered = filtered.filter(conge => 
+                    `${conge.personnel?.prenom} ${conge.personnel?.nom}`.toLowerCase().includes(searchTerm) ||
+                    conge.nature?.toLowerCase().includes(searchTerm) ||
+                    conge.typeConge?.libelle?.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            return filtered;
         },
 
         statistiques() {
             return {
                 total: this.conges.length,
-                enAttente: this.conges.filter(c => c.statut === 'en-attente').length,
-                valides: this.conges.filter(c => c.statut === 'valide').length,
-                refuses: this.conges.filter(c => c.statut === 'refuse').length
+                enAttente: this.conges.filter(c => c.etat === 1).length,
+                valides: this.conges.filter(c => c.etat === 2).length,
+                refuses: this.conges.filter(c => c.etat === 3).length
             };
         }
     }
@@ -337,5 +423,14 @@ export default {
 .slide-down-leave-to {
     max-height: 0;
     opacity: 0;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
 }
 </style>

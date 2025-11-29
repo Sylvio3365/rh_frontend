@@ -18,6 +18,7 @@ import ListeConges from "../views/conge/ListeConges.vue";
 import Page404 from "../views/layouts/error/404.vue";
 
 import Hello from "@/views/Hello.vue";
+import CongeDetail from "@/views/conge/CongeDetail.vue";
 
 var appname = "RH";
 
@@ -85,6 +86,11 @@ const routes = [
     meta: { title: "Liste des Congés" + appname, requiresAuth: true }, // Protégé
   },
   {
+    path: '/conges/:id',
+    name: 'CongeDetail',
+    component: CongeDetail
+},
+  {
     path: "/conges/calendrier",
     name: "CalendrierConges",
     component: CalendrierConge,
@@ -97,6 +103,7 @@ const routes = [
     component: Page404,
     meta: { title: "Upps! 404" + appname, hideNav: true, requiresAuth: false }, // Public
   },
+  
 ];
 
 const router = createRouter({
