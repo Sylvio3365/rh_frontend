@@ -52,22 +52,25 @@ export default {
             required: true
         },
         statutActuel: {
-            type: Number,
+            type: String, // CHANGÉ: Maintenant String au lieu de Number
             required: true
         }
     },
     data() {
         return {
+            // CHANGÉ: Maintenant avec des valeurs string
             nouveauStatut: this.statutActuel,
             statuts: [
-                { value: 1, nom: 'En attente', couleur: '#F59E0B' },
-                { value: 2, nom: 'Validé', couleur: '#10B981' },
-                { value: 3, nom: 'Refusé', couleur: '#EF4444' }
+                { value: 'en-attente', nom: 'En attente', couleur: '#F59E0B' },
+                { value: 'valide', nom: 'Validé', couleur: '#10B981' },
+                { value: 'refuse', nom: 'Refusé', couleur: '#EF4444' },
+                { value: 'annule', nom: 'Annulé', couleur: '#6B7280' }
             ]
         };
     },
     methods: {
         confirmer() {
+            console.log('🔍 Modal - Statut sélectionné:', this.nouveauStatut);
             this.$emit('update:statut', this.nouveauStatut);
         },
         capitalizeFirstLetter(string) {
