@@ -24,13 +24,24 @@
                 </button>
             </div> -->
             <div class="relative">
-                <input type="text" placeholder="Rechercher un employé..."
+                <input type="text" 
+                    placeholder="Rechercher un employé..."
+                    v-model="search"
+                    @input="debouncedSearch"
                     class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary">
                 <Icon icon="mdi:magnify" class="absolute left-3 top-2.5 text-gray-400" />
+                <!-- Loader -->
+                <div v-if="loading" class="absolute right-3 top-2.5">
+                    <span class="loader"></span>
+                </div>
             </div>
         </div>
 
         <!-- Tableau des employés -->
+        <div v-if="errorMessage" 
+            class="mb-4 p-4 text-red-800 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-100 dark:border-red-700">
+            {{ errorMessage }}
+        </div>
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
             <div class="overflow-x-auto">
                 <table class="w-full">
@@ -59,7 +70,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                        <tr v-for="employe in employes" :key="employe.id"
+                        <tr v-for="employe in filteredPersonnels" :key="employe.id"
                             class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                             @click="voirFicheEmploye(employe.id)">
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -119,6 +130,7 @@
 <script>
 import { Icon } from "@iconify/vue";
 import axios from "axios";
+import _ from "lodash";
 
 export default {
     name: "ListeEmployes",
@@ -127,8 +139,15 @@ export default {
     },
     data() {
         return {
-            employes: [] 
+            search: "",
+            loading: false,          // liste complète récupérée depuis API
+            filteredPersonnels: []   ,
+            employes: [] ,
+            errorMessage: null
         };
+    },
+    created() {
+        this.filteredPersonnels = this.employes; // initialisation
     },
 
     mounted() {
@@ -138,18 +157,24 @@ export default {
         async chargerEmployes() {
             try {
                 const res = await axios.get("http://localhost:9090/personnels");
-                const personnels = res.data;
-
+                if (res.data.error) {
+                    this.errorMessage = res.data.error;
+                    return;
+                }
+                const personnels = res.data.data;
                 const employesComplets = await Promise.all(
                     personnels.map(async (p) => {
                         let contrat = null;
                         try {
-                            const resContrat = await axios.get(`http://localhost:9090/personnels/${p.idPersonnel}/contrat/actif`);
-                            contrat = resContrat.data;
+                            const resContrat = await axios.get(
+                                `http://localhost:9090/personnels/${p.idPersonnel}/contrat/actif`
+                            );
+                            if (resContrat.data.success) {
+                                contrat = resContrat.data.data;
+                            }
                         } catch (error) {
                             console.warn("Pas de contrat actif pour :", p.idPersonnel);
                         }
-
                         return {
                             id: p.idPersonnel,
                             nom: p.nom,
@@ -166,10 +191,12 @@ export default {
                 );
 
                 this.employes = employesComplets;
-
-            } catch (e) {
-                console.error("Erreur lors du chargement :", e);
+                this.filteredPersonnels = employesComplets;
+            } catch(e) {
+                console.error("Erreur :", e);
+                this.errorMessage = "Impossible de charger les employés.";
             }
+
         },
 
         getCouleurContrat(typeContrat) {
@@ -207,7 +234,43 @@ export default {
         },
         getImageUrl(nomFichier) {
             return new URL(`../../assets/img/${nomFichier}`, import.meta.url).href;
-        }
+        },
+        debouncedSearch: _.debounce(function () {
+            this.doSearch();
+        }, 100),
+
+        doSearch() {
+            const query = this.search.trim().toLowerCase();
+            this.loading = true;
+            setTimeout(() => {
+                if (!query) {
+                    this.filteredPersonnels = this.employes;
+                } else {
+                    this.filteredPersonnels = this.employes.filter(p =>
+                        (p.nom + " " + p.prenom).toLowerCase().includes(query)
+                    );
+                }
+                this.loading = false;
+            }, 50);
+        },
     }
 };
 </script>
+
+<style>
+.loader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ccc;
+  border-top-color: #555;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+</style>
