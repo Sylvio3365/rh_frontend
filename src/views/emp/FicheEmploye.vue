@@ -22,6 +22,10 @@
             </div>
         </div>
 
+        <div v-if="errorMessage" 
+            class="mb-4 p-4 text-red-800 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-100 dark:border-red-700">
+            {{ errorMessage }}
+        </div>
         <!-- En-tête employé -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6 mb-6">
             <div class="flex items-start justify-between">
@@ -56,7 +60,7 @@
                         {{ employe.statut }}
                     </span>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                        Employé depuis {{ calculerAnciennete(employe.dateEntree) }}
+                        Employé depuis {{ employe.anciennete  }} 
                     </p>
                 </div>
             </div>
@@ -174,6 +178,96 @@
                         </div>
                     </div>
                 </div>
+                <!-- Documents -->
+                <div v-if="ongletActif === 'documents'" class="space-y-4">
+                    <div v-if="documents.length === 0"
+                        class="text-gray-500 dark:text-gray-400 italic text-center py-6">
+                        Aucun document disponible pour cet employé.
+                    </div>
+
+                    <!-- Liste documents -->
+                    <div v-for="doc in documents" :key="doc.id"
+                        class="flex items-center justify-between gap-4 p-4 rounded-lg border dark:border-gray-700 bg-gray-50 dark:bg-gray-800 shadow">
+                        <img
+                            v-if="doc.docs && doc.docs.toLowerCase().endsWith('.jpg') || doc.docs.toLowerCase().endsWith('.png')"
+                            :src="`http://localhost:9090/uploads/documents/${doc.docs}`"
+                            class="w-14 h-14 object-cover rounded-md border"
+                        />
+                        <div v-else class="w-14 h-14 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-md">
+                            <Icon icon="mdi:file-document" class="text-gray-600 text-3xl" />
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-medium text-gray-900 dark:text-white truncate">
+                                {{ doc.typeDocument.libelle }}
+                            </h3>
+                            <span class="inline-block mt-1 px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
+                                Valide
+                            </span>
+                        </div>
+                        <div class="flex flex-col gap-2 text-right">
+                            <button @click="afficherDocument(doc)"
+                                class="flex items-center gap-1 text-sm px-3 py-1 bg-primary text-white rounded hover:bg-primary/80 transition">
+                                <Icon icon="mdi:eye" />
+                            </button>
+                            <button @click="docToDelete = doc.id; showConfirmDelete = true"
+                                class="flex items-center gap-1 text-sm px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                                <Icon icon="mdi:delete" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Zone d'affichage -->
+            <!-- MODAL DOCUMENT -->
+            <div v-if="modalVisible"
+                class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+                <div class="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-xl relative"
+                    style="width: 80%; max-width: 900px; max-height: 90%; overflow: auto;">
+                    <!-- Bouton fermer -->
+                    <button @click="fermerDocument"
+                            class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded">
+                        ✖
+                    </button>
+                    <!-- PDF -->
+                    <iframe 
+                        v-if="documentAffiche && documentAffiche.endsWith('.pdf')"
+                        :src="documentAffiche"
+                        style="width: 100%; height: 80vh;">
+                    </iframe>
+                    <!-- Image -->
+                    <img 
+                        v-else-if="documentAffiche"
+                        :src="documentAffiche"
+                        style="max-width: 100%; max-height: 80vh; margin: auto; display: block;">
+                </div>
+
+            </div>
+
+            <!-- Confirmation de suppression -->
+            <div v-if="showConfirmDelete"
+                class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-[350px] shadow-xl">
+                <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                    Confirmer la suppression
+                </h2>
+                <p class="text-gray-700 dark:text-gray-300 mb-6">
+                    Voulez-vous vraiment supprimer ce document : 
+                    <strong>{{ docToDelete?.typeDocument?.libelle }}</strong> ?
+                </p>
+                <div class="flex justify-end space-x-3">
+                    <button 
+                        @click="showConfirmDelete = false"
+                        class="px-4 py-2 rounded bg-gray-300 dark:bg-gray-600 hover:bg-gray-400">
+                        Annuler
+                    </button>
+
+                    <button 
+                        @click="supprimerDocument"
+                        class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
+                        Supprimer
+                    </button>
+                </div>
+            </div>
             </div>
 
             <!-- Colonne latérale -->
@@ -212,15 +306,46 @@
                         <div v-for="doc in documents" :key="doc.id"
                             class="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
                             <div class="flex items-center">
-                                <Icon :icon="getIconDocument(doc.type)" class="text-gray-400 mr-2" />
-                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ doc.nom }}</span>
+                                <Icon :icon="getIconDocument(doc.typeDocument)" class="text-gray-400 mr-2" />
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ doc.typeDocument.libelle }}</span>
                             </div>
-                            <button class="text-primary hover:text-primary/80">
+                            <button @click="telechargerDocument(doc)" class="text-primary hover:text-primary/80">
                                 <Icon icon="mdi:download" />
                             </button>
                         </div>
                     </div>
+                    <!-- Formulaire d'ajout -->
+                    <div v-if="afficherFormDocument" class="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <h3 class="text-md font-semibold mb-3 text-gray-800 dark:text-white">
+                            Nouveau document
+                        </h3>
+                        <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">Type de document</label>
+                        <select v-model="nouveauDocument.type"
+                                class="w-full border rounded p-2 mb-3 dark:bg-gray-800 dark:text-white">
+                            <option disabled value="">-- Sélectionner --</option>
+                            <option v-for="t in typesDocument" :key="t.idTypeDocument" :value="t.idTypeDocument">
+                                {{ t.libelle }}
+                            </option>
+                        </select>
+                        <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">Fichier</label>
+                        <input type="file"
+                            @change="onFileSelected"
+                            class="w-full border rounded p-2 mb-3 dark:bg-gray-800 dark:text-white" />
+
+                        <div class="flex gap-4">
+                            <button @click="envoyerDocument"
+                                    class="bg-primary text-white px-4 py-2 rounded hover:bg-primary/80">
+                                Enregistrer
+                            </button>
+
+                            <button @click="afficherFormDocument = false"
+                                    class="px-4 py-2 rounded border">
+                                Annuler
+                            </button>
+                        </div>
+                    </div> 
                     <button
+                        @click="afficherFormDocument = true"
                         class="w-full mt-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 text-center text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
                         <Icon icon="mdi:plus" class="mr-1" />
                         Ajouter un document
@@ -252,19 +377,36 @@ export default {
             ],
             employe: {},                
             historiquePostes: [],     
-            documents: []     
+            documents: [],
+            errorMessage: null,
+            afficherFormDocument: false,
+            typesDocument: [],
+            nouveauDocument: {
+                type: "",
+                fichier: null
+            },
+            documentAffiche: null,
+            modalVisible: false,
+            showConfirmDelete: false,
+            docToDelete: null,
         };
     },
     mounted() {
         this.chargerEmploye();
         this.chargerHistoriques();
+        this.chargerTypesDocument();
+        this.chargerDocuments();
     },
     methods: {
         async chargerEmploye() {
             const id = this.$route.params.id;
             try {
                 const response = await axios.get(`http://localhost:9090/personnels/${id}`);
-                const data = response.data;
+                if (!response.data.success) {
+                    this.errorMessage = response.data.error;
+                    return;
+                }
+                const data = response.data.data;
                 this.employe = {
                     id: data.idPersonnel,
                     nom: data.nom,
@@ -277,22 +419,31 @@ export default {
                     photo: require(`@/assets/img/user1.png`),
                     poste: null,
                     departement: null,
-                    typeContrat: null,      
-                    dateEntree: null,   
+                    typeContrat: null,
+                    dateEntree: null,
                     statut: data.statut == 1 ? "Actif" : "Non actif",
                     matricule: data.matricule || "N/A",
                     adresse: data.adresse || "Non spécifiée",
-                    telephone: data.telephone || "Non spécifié"
+                    telephone: data.telephone || "Non spécifié",
+                    anciennete: data.anciennete || "N/A",
                 };
 
-                const contrat = await axios.get(`http://localhost:9090/personnels/${id}/contrat/actif`);
-                this.employe.typeContrat = contrat.data.typeContrat.libelle;
-                this.employe.dateEntree = contrat.data.dateDebut;
-                this.employe.dateFinContrat = contrat.data.dateFin;
-                this.employe.periodeEssai = contrat.data.typeContrat.nbMois + ' mois';
-                this.employe.poste = contrat.data.poste.nom;
-                this.employe.posteDescription = contrat.data.poste.description || "--";
-                this.employe.departement = contrat.data.poste.departement.libelle;
+                // ----- contrat actif -----
+                const contratRes = await axios.get(
+                    `http://localhost:9090/personnels/${id}/contrat/actif`
+                );
+
+                if (contratRes.data.success && contratRes.data.data) {
+                    const contrat = contratRes.data.data;
+
+                    this.employe.typeContrat = contrat.typeContrat.libelle;
+                    this.employe.dateEntree = contrat.dateDebut;
+                    this.employe.dateFinContrat = contrat.dateFin;
+                    this.employe.periodeEssai = contrat.typeContrat.nbMois + ' mois';
+                    this.employe.poste = contrat.poste.nom;
+                    this.employe.posteDescription = contrat.poste.description || "--";
+                    this.employe.departement = contrat.poste.departement.libelle;
+                }
 
             } catch (error) {
                 console.error("Erreur lors du chargement employé :", error);
@@ -302,7 +453,11 @@ export default {
             const id = this.$route.params.id;
             try {
                 const response = await axios.get(`http://localhost:9090/personnels/${id}/contrats`);
-                const data = response.data;
+                if (!response.data.success) {
+                    this.errorMessage = response.data.error;
+                    return;
+                }
+                const data = response.data.data;
                 let histo = data.map(item => ({
                     poste: item.poste.nom,
                     departement: item.poste.departement.libelle,
@@ -312,41 +467,48 @@ export default {
                     typeContrat: item.typeContrat.libelle
                 }));
                 histo.sort((a, b) => new Date(a.dateDebut) - new Date(b.dateDebut));
-                // Détection mouvement (promotion / mobilité)
                 histo = histo.map((item, index) => {
-                    if (index === 0) {
-                        return { ...item, mouvement: "Premier poste" };
-                    }
+                    if (index === 0) return { ...item, mouvement: "Premier poste" };
                     const prev = histo[index - 1];
-                    // Mobilité = le département change
                     if (item.departement !== prev.departement) {
                         return { ...item, mouvement: "Mobilité" };
                     }
-                    // Promotion = salaire augmente OU poste change dans le même département
                     if (item.salaire > prev.salaire || item.poste !== prev.poste) {
                         return { ...item, mouvement: "Promotion" };
                     }
+
                     return { ...item, mouvement: "Changement" };
                 });
+
                 this.historiquePostes = histo;
+
             } catch (error) {
+                this.errorMessage = response.data.error;
                 console.error("Erreur lors du chargement de l'historique :", error);
             }
+        },
+        async chargerTypesDocument() {
+            const res = await axios.get("http://localhost:9090/documents/types");
+            if (res.data.success) {
+                this.typesDocument = res.data.data;
+            }
+        },
+        async chargerDocuments() {
+            const id = this.$route.params.id;
+            try {
+                const res = await axios.get(`http://localhost:9090/personnels/${id}/documents`);
+                if (!res.data.success) {
+                    this.errorMessage = res.data.error;
+                }
+                this.documents = res.data.data;
+            } catch (error) {
+                this.errorMessage = res.data.error;
+            }
+            
         },
         formatDate(date) {
             if (!date) return 'Non spécifié';
             return new Date(date).toLocaleDateString('fr-FR');
-        },
-        calculerAnciennete(dateEntree) {
-            const entree = new Date(dateEntree);
-            const aujourdhui = new Date();
-            const annees = aujourdhui.getFullYear() - entree.getFullYear();
-            const mois = aujourdhui.getMonth() - entree.getMonth();
-
-            if (mois < 0) {
-                return `${annees - 1} an${annees - 1 > 1 ? 's' : ''} et ${12 + mois} mois`;
-            }
-            return `${annees} an${annees > 1 ? 's' : ''} et ${mois} mois`;
         },
         getIconDocument(type) {
             const icons = {
@@ -356,6 +518,74 @@ export default {
                 'contrat': 'mdi:file-document'
             };
             return icons[type] || 'mdi:file';
+        },
+        onFileSelected(e) {
+            this.nouveauDocument.fichier = e.target.files[0];
+        },
+        async envoyerDocument() {
+            console.log("Types documents reçus :", this.nouveauDocument);
+            if (!this.nouveauDocument.type || !this.nouveauDocument.fichier) {
+                alert("Veuillez remplir tous les champs.");
+                return;
+            }
+            
+            const id = this.$route.params.id;
+            const formData = new FormData();
+            formData.append("id_personnel", id);
+            formData.append("id_type_document", this.nouveauDocument.type);
+            formData.append("fichier", this.nouveauDocument.fichier);
+            try {
+                const res = await axios.post("http://localhost:9090/documents/upload", formData, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
+                if (!res.data.success) {
+                    this.errorMessage = res.data.error;
+                    return;
+                }
+
+                this.afficherFormDocument = false;
+                this.nouveauDocument = { type: "", fichier: null };
+
+                this.chargerDocuments();
+
+            } catch (err) {
+                console.error("Erreur upload :", err);
+                this.errorMessage = "Erreur lors de l'upload.";
+            }
+        },
+        afficherDocument(doc) {
+            this.documentAffiche = "http://localhost:9090/uploads/documents/" + doc.docs;
+            this.modalVisible = true;
+        },
+        fermerDocument() {
+            this.modalVisible = false;
+            this.documentAffiche = null;
+        },   
+        async supprimerDocument() {
+            if (!this.docToDelete) return;
+            try {
+                const res = await axios.delete(`http://localhost:9090/documents/${this.docToDelete.idPersonnel}/${this.docToDelete.idTypeDocument}`);
+                if(!res.data.success) {
+                    this.errorMessage = res.data.error;
+                    return;
+                }
+                this.chargerDocuments();
+            } catch (e) {
+                console.error("Erreur lors de la suppression du document :", e);
+            }
+
+            this.showConfirmDelete = false;
+            this.docToDelete = null;
+        },
+
+        telechargerDocument(doc) {
+            const url = `http://localhost:9090/documents/download/${doc.docs}`;
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = doc.docs;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     }
 };

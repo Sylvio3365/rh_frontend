@@ -1,0 +1,6 @@
+opencv-python
+pyzbar
+psycopg2-binary
+qrcode[pil]
+pillow
+requests
