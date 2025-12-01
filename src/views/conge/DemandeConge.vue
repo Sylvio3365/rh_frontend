@@ -24,8 +24,12 @@
                             <div class="relative">
                                 <input v-model="searchEmployee" @input="filterEmployees"
                                     @focus="showEmployeeList = true" type="text" placeholder="Rechercher un employé..."
-                                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary dark:text-white">
-                                <Icon icon="mdi:magnify" class="absolute right-3 top-3.5 text-gray-400 text-xl" />
+                                    :disabled="isLoadingEmployees"
+                                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary dark:text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                <Icon v-if="!isLoadingEmployees" icon="mdi:magnify"
+                                    class="absolute right-3 top-3.5 text-gray-400 text-xl" />
+                                <Icon v-else icon="mdi:loading"
+                                    class="absolute right-3 top-3.5 text-gray-400 text-xl animate-spin" />
 
                                 <!-- Liste déroulante des employés -->
                                 <div v-if="showEmployeeList && filteredEmployees.length > 0"
@@ -168,10 +172,11 @@
                                 class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                 Annuler
                             </button>
-                            <button type="submit" :disabled="!formValide"
+                            <button type="submit" :disabled="!formValide || isSubmitting"
                                 class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
-                                <Icon icon="mdi:send" class="text-lg" />
-                                Soumettre la demande
+                                <Icon v-if="!isSubmitting" icon="mdi:send" class="text-lg" />
+                                <Icon v-else icon="mdi:loading" class="text-lg animate-spin" />
+                                {{ isSubmitting ? 'Envoi en cours...' : 'Soumettre la demande' }}
                             </button>
                         </div>
                     </form>
@@ -291,6 +296,10 @@
 
 <script>
 import { Icon } from "@iconify/vue";
+import PersonnelService from '@/services/PersonnelService';
+import TypeCongeService from '@/services/TypeCongeService';
+import DemandeService from '@/services/DemandeService';
+import SoldeCongeService from '@/services/SoldeCongeService';
 
 export default {
     name: "NouvelleDemandeConge",
@@ -301,6 +310,9 @@ export default {
         return {
             searchEmployee: '',
             showEmployeeList: false,
+            isLoadingEmployees: false,
+            isLoadingTypesConge: false,
+            isSubmitting: false,
             demande: {
                 employe: null,
                 typeConge: null,
@@ -309,58 +321,14 @@ export default {
                 motif: '',
                 contactUrgence: ''
             },
-            employees: [
-                {
-                    id: 1,
-                    nom: 'Dubois',
-                    prenom: 'Marie',
-                    poste: 'Développeuse Frontend',
-                    departement: 'IT',
-                    photo: '/assets/img/user1.png',
-                    email: 'marie.dubois@entreprise.com'
-                },
-                {
-                    id: 2,
-                    nom: 'Martin',
-                    prenom: 'Pierre',
-                    poste: 'Chef de Projet',
-                    departement: 'IT',
-                    photo: '/assets/img/user2.png',
-                    email: 'pierre.martin@entreprise.com'
-                },
-                {
-                    id: 3,
-                    nom: 'Laurent',
-                    prenom: 'Sophie',
-                    poste: 'Responsable RH',
-                    departement: 'RH',
-                    photo: '/assets/img/user3.png',
-                    email: 'sophie.laurent@entreprise.com'
-                },
-                {
-                    id: 4,
-                    nom: 'Bernard',
-                    prenom: 'Thomas',
-                    poste: 'Analyste Data',
-                    departement: 'Data',
-                    photo: '/assets/img/user4.png',
-                    email: 'thomas.bernard@entreprise.com'
-                },
-                {
-                    id: 5,
-                    nom: 'Petit',
-                    prenom: 'Julie',
-                    poste: 'Designer UI/UX',
-                    departement: 'Design',
-                    photo: '/assets/img/user5.png',
-                    email: 'julie.petit@entreprise.com'
-                }
-            ],
+            employees: [],
             typesConge: [
-                { id: 'payes', nom: 'Congés Payés', icone: 'mdi:beach' },
-                { id: 'maladie', nom: 'Congés Maladie', icone: 'mdi:medical-bag' },
-                { id: 'exceptionnel', nom: 'Congés Exceptionnels', icone: 'mdi:star' },
-                { id: 'sans-solde', nom: 'Congés Sans Solde', icone: 'mdi:calendar-remove' }
+                { id: 1, code: 'MATERNITE', nom: 'Maternité', nbMax: 90, icone: 'mdi:baby-carriage' },
+                { id: 2, code: 'PATERNITE', nom: 'Paternité', nbMax: 15, icone: 'mdi:baby-face' },
+                { id: 3, code: 'ANNUEL', nom: 'Annuel', nbMax: 30, icone: 'mdi:beach' },
+                { id: 4, code: 'MALADIE', nom: 'Maladie', nbMax: 60, icone: 'mdi:medical-bag' },
+                { id: 5, code: 'FORMATION', nom: 'Formation', nbMax: 20, icone: 'mdi:school' },
+                { id: 6, code: 'EXCEPTIONNEL', nom: 'Exceptionnel', nbMax: 10, icone: 'mdi:star' }
             ],
             soldesConges: [
                 { type: 'payes', nom: 'Congés Payés', acquis: 25, restant: 18 },
@@ -422,10 +390,114 @@ export default {
         }
     },
     methods: {
-        selectEmployee(employee) {
+        async loadAllTypesConge() {
+            this.isLoadingTypesConge = true;
+            try {
+                const typesConges = await TypeCongeService.getAllTypeConge();
+                console.log('✅ Types de congés chargés depuis API:', typesConges);
+
+                if (typesConges && typesConges.length > 0) {
+                    // Mapper les données de l'API vers le format attendu
+                    this.typesConge = typesConges.map(type => ({
+                        id: type.id,
+                        code: type.code,
+                        nom: type.nom,
+                        icone: this.getIconeByCode(type.code)
+                    }));
+                    console.log('✅ Types de congés mappés:', this.typesConge);
+                }
+            } catch (error) {
+                console.error('❌ Erreur lors du chargement des types de congés:', error);
+                // Ne pas afficher d'alerte, garder les types par défaut
+                console.warn('ℹ️ Utilisation des types de congés par défaut');
+            } finally {
+                this.isLoadingTypesConge = false;
+            }
+        },
+
+        getIconeByCode(code) {
+            const icones = {
+                'PAYES': 'mdi:beach',
+                'MALADIE': 'mdi:medical-bag',
+                'EXCEPTIONNEL': 'mdi:star',
+                'SANS_SOLDE': 'mdi:calendar-remove'
+            };
+            return icones[code] || 'mdi:calendar';
+        },
+
+        async loadAllPersonnel() {
+            this.isLoadingEmployees = true;
+            try {
+                const personnels = await PersonnelService.getAllPersonnel();
+
+                // Pour chaque personnel, récupérer le contrat actif
+                const employeesWithContract = await Promise.all(personnels.map(async (personnel) => {
+                    let contratActif = null;
+                    try {
+                        contratActif = await PersonnelService.getContratActif(personnel.idPersonnel);
+                    } catch (e) {
+                        console.warn(`Impossible de récupérer le contrat actif pour ${personnel.nom} ${personnel.prenom}`, e);
+                    }
+
+                    return {
+                        id: personnel.idPersonnel,
+                        nom: personnel.nom,
+                        prenom: personnel.prenom,
+                        poste: contratActif?.poste?.nom || 'Non défini',
+                        departement: contratActif?.poste?.departement?.libelle || 'Non défini',
+                        photo: personnel.photo || '/assets/img/default-user.png',
+                        email: personnel.email || ''
+                    };
+                }));
+
+                this.employees = employeesWithContract;
+
+            } catch (error) {
+                console.error('Erreur lors du chargement des employés:', error);
+                alert('Impossible de charger la liste des employés. Veuillez réessayer.');
+            } finally {
+                this.isLoadingEmployees = false;
+            }
+        },
+
+
+        async selectEmployee(employee) {
             this.demande.employe = employee;
             this.searchEmployee = '';
             this.showEmployeeList = false;
+
+            await this.chargerSoldesEmploye(employee.id);
+        },
+        async chargerSoldesEmploye(idPersonnel) {
+            try {
+                const soldes = await SoldeCongeService.getSoldesByPersonnel(idPersonnel);
+                console.log('✅ Soldes chargés:', soldes);
+
+                // Mapper les soldes vers le format attendu
+                this.soldesConges = soldes.map(solde => ({
+                    type: solde.typeConge.idTypeConge,
+                    nom: this.capitalizeFirstLetter(solde.typeConge.libelle),
+                    acquis: solde.typeConge.nbMax,
+                    utilise: parseFloat(solde.congeUtilise),
+                    restant: solde.typeConge.nbMax - parseFloat(solde.congeUtilise)
+                }));
+
+                console.log('✅ Soldes mappés:', this.soldesConges);
+            } catch (error) {
+                console.error('❌ Erreur lors du chargement des soldes:', error);
+                // Garder les soldes par défaut en cas d'erreur
+            }
+        },
+        // Ajouter cette méthode utilitaire
+        capitalizeFirstLetter(string) {
+            if (!string) return '';
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        },
+
+        // Modifier getSoldeType pour utiliser l'ID du type de congé
+        getSoldeType(typeId) {
+            const solde = this.soldesConges.find(s => s.type === typeId);
+            return solde ? solde.restant : 0;
         },
         filterEmployees() {
             this.showEmployeeList = true;
@@ -473,21 +545,55 @@ export default {
             };
             return classes[statut] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
         },
-        soumettreDemande() {
+        async soumettreDemande() {
             if (!this.soldeSuffisant) {
                 alert('Solde insuffisant pour ce type de congé !');
                 return;
             }
 
-            // Simulation de soumission
+            if (!this.formValide) {
+                alert('Veuillez remplir tous les champs obligatoires.');
+                return;
+            }
+
             const confirmation = confirm(`Confirmer la demande de congé pour ${this.demande.employe.prenom} ${this.demande.employe.nom} ?`);
-            if (confirmation) {
-                alert('Demande soumise avec succès !');
+
+            if (!confirmation) return;
+
+            this.isSubmitting = true;
+
+            try {
+                const demandeData = {
+                    personnel: { idPersonnel: this.demande.employe.id },
+                    typeConge: { idTypeConge: this.demande.typeConge },
+                    debut: this.demande.dateDebut,
+                    fin: this.demande.dateFin,
+                    motif: this.demande.motif,
+                    etat: 1
+                };
+
+                console.log('📤 Envoi de la demande:', demandeData);
+
+                const response = await DemandeService.createDemande(demandeData);
+
+                console.log('✅ Demande créée avec succès:', response);
+                alert('Demande de congé soumise avec succès !');
                 this.$router.push('/conges/liste');
+
+            } catch (error) {
+                console.error('❌ Erreur lors de la soumission:', error);
+                let errorMessage = error.response?.data?.message || error.message || 'Une erreur est survenue.';
+                alert(`Erreur: ${errorMessage}`);
+            } finally {
+                this.isSubmitting = false;
             }
         }
+
     },
     mounted() {
+        // Charger les employés depuis l'API au montage du composant
+        this.loadAllPersonnel();
+
         // Fermer la liste déroulante quand on clique ailleurs
         document.addEventListener('click', (e) => {
             if (!this.$el.contains(e.target)) {
@@ -525,5 +631,20 @@ export default {
 
 .employee-list::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* Animation pour l'icône de chargement */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
 }
 </style>
