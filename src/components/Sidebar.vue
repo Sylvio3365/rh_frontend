@@ -30,42 +30,37 @@
               <span class="w-full"> Tableau de bord </span>
             </router-link>
           </div>
-          <div class="item">
-            <router-link to="/pointage" exact
-              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-              <span class="mr-3 text-xl">
-                <Icon icon="bxs:dashboard" />
-              </span>
-              <span class="w-full"> Pointage </span>
-            </router-link>
+         <div class="item mt-3">
+            <menu-accordion>
+              <template v-slot:icon>
+                <Icon icon="mdi:clock-check" />
+              </template>
+              <template v-slot:title> Présence & Pointage </template>
+              <template v-slot:content>
+                <router-link to="/pointage"
+                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+                  <Icon icon="mdi:clock-in" class="inline mr-2" />
+                  Pointage quotidien
+                </router-link>
+                <router-link to="/presence"
+                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+                  <Icon icon="mdi:account-check" class="inline mr-2" />
+                  État de présence
+                </router-link>
+                <router-link to="/historique"
+                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+                  <Icon icon="mdi:history" class="inline mr-2" />
+                  Historique pointage
+                </router-link>
+                <router-link to="/heures-sup"
+                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+                  <Icon icon="mdi:clock-plus" class="inline mr-2" />
+                  Heures supplémentaires
+                </router-link>
+              </template>
+            </menu-accordion>
           </div>
-          <div class="item">
-            <router-link to="/historique" exact
-              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-              <span class="mr-3 text-xl">
-                <Icon icon="bxs:dashboard" />
-              </span>
-              <span class="w-full"> Historique Pointage </span>
-            </router-link>
-          </div>
-          <div class="item">
-            <router-link to="/presence" exact
-              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-              <span class="mr-3 text-xl">
-                <Icon icon="bxs:dashboard" />
-              </span>
-              <span class="w-full"> Présence </span>
-            </router-link>
-          </div>
-          <div class="item">
-            <router-link to="/heures-sup" exact
-              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-              <span class="mr-3 text-xl">
-                <Icon icon="bxs:dashboard" />
-              </span>
-              <span class="w-full"> Heure Supplémentaires </span>
-            </router-link>
-          </div>
+
           <div class="item mt-3">
             <menu-accordion>
               <template v-slot:icon>
@@ -73,10 +68,6 @@
               </template>
               <template v-slot:title> Gestion des Employés </template>
               <template v-slot:content>
-                <router-link to="/employes/ajouter"
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Ajouter un employé
-                </router-link>
                 <router-link to="/employes/liste"
                   class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
                   Liste des employés
@@ -106,96 +97,6 @@
               </template>
             </menu-accordion>
           </div>
-          <div class="item mt-3">
-            <menu-accordion>
-              <template v-slot:icon>
-                <Icon icon="mdi:account-tie" />
-              </template>
-              <template v-slot:title> Gestion des Postes </template>
-              <template v-slot:content>
-                <router-link to="/postes/liste"
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Liste des postes
-                </router-link>
-                <router-link to="/postes/creation"
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Créer un poste
-                </router-link>
-                <router-link to="/postes/organigramme"
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Organigramme
-                </router-link>
-                <router-link to="/postes/competences"
-                  class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                  Compétences requises
-                </router-link>
-              </template>
-            </menu-accordion>
-          </div>
-        </div>
-      </div>
-      <div class="pb-5">
-        <p class="font-medium text-gray-400 mt-4 dark:text-gray-400">
-          Administration
-        </p>
-
-        <div class="item mt-3">
-          <menu-accordion>
-            <template v-slot:icon>
-              <Icon icon="mdi:file-document-multiple" />
-            </template>
-            <template v-slot:title> Documents </template>
-            <template v-slot:content>
-              <router-link to="/documents/contrats"
-                class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                Contrats types
-              </router-link>
-              <router-link to="/documents/attestations"
-                class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                Attestations
-              </router-link>
-              <router-link to="/documents/modeles"
-                class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                Modèles de documents
-              </router-link>
-            </template>
-          </menu-accordion>
-        </div>
-
-        <div class="item mt-3">
-          <menu-accordion>
-            <template v-slot:icon>
-              <Icon icon="mdi:cog" />
-            </template>
-            <template v-slot:title> Paramètres </template>
-            <template v-slot:content>
-              <router-link to="/parametres/entreprise"
-                class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                Informations entreprise
-              </router-link>
-              <router-link to="/parametres/utilisateurs"
-                class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                Utilisateurs système
-              </router-link>
-              <router-link to="/parametres/droits"
-                class="w-full text-left block rounded-md p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
-                Droits d'accès
-              </router-link>
-            </template>
-          </menu-accordion>
-        </div>
-
-        <div class="item mt-3">
-          <router-link to="/rapports">
-            <button
-              class="text-gray-800 dark:text-gray-500 bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 w-full flex text-left rounded-md box-border p-3">
-              <span class="mr-3 text-xl">
-                <Icon icon="mdi:chart-box" />
-              </span>
-              <span class="w-full"> Rapports </span>
-              <span class="box-border mt-1 text-gray-500"> </span>
-            </button>
-          </router-link>
         </div>
       </div>
     </div>
