@@ -9,15 +9,64 @@
           </h1>
         </div>
         <div class="flex gap-2">
-          <button
-            class="bg-white dark:bg-gray-800 hover:border-gray-200 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 border rounded py-2 px-4 text-sm">
-            Exporter PDF
-          </button>
-          <button
+          <!-- Menu déroulant pour les exports -->
+          <div class="relative" ref="exportMenu">
+            <button @click="toggleExportMenu"
+              class="bg-white dark:bg-gray-800 hover:border-gray-200 dark:hover:bg-gray-700 dark:text-white dark:border-gray-700 border rounded py-2 px-4 text-sm flex items-center gap-2">
+              <Icon icon="mdi:download" class="text-lg" />
+              Exporter
+              <Icon icon="mdi:chevron-down" class="text-lg" />
+            </button>
+
+            <!-- Menu d'export -->
+            <div v-if="showExportMenu"
+              class="absolute mt-2 w-48 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg z-10">
+              <!-- <div class="p-2 border-b dark:border-gray-700">
+                <p class="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">Export PDF</p>
+                <button @click="exportPDF('dashboard')"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                  Dashboard complet
+                </button>
+                <button @click="exportPDF('stats')"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                  Statistiques détaillées
+                </button>
+                <button @click="exportPDF('alerts')"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                  Alertes et indicateurs
+                </button>
+              </div> -->
+              <div class="p-2">
+                <p class="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">Export CSV</p>
+                <button @click="exportCSV('effectif')"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                  Données effectifs
+                </button>
+                <button @click="exportCSV('turnover')"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                  Données turnover
+                </button>
+                <button @click="exportCSV('demographics')"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                  Démographie complète
+                </button>
+                <button @click="exportCSV('departments')"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                  Statistiques par service
+                </button>
+                <button @click="exportCSV('alerts-list')"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                  Liste des alertes
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- <button
             class="bg-primary border flex gap-2 text-white hover:bg-primary/80 dark:border-gray-700 rounded py-2 px-4 text-sm">
             <Icon icon="ic:twotone-plus" class="text-lg" />
             Nouveau Rapport
-          </button>
+          </button> -->
         </div>
       </div>
     </div>
@@ -47,7 +96,7 @@
       <div class="card bg-white dark:bg-gray-800 w-full rounded-lg p-5 border dark:border-gray-700">
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">8.2%</p>
+            <p class="font-semibold text-gray-900 dark:text-gray-200 text-2xl">{{ currentMonthTurnover }}%</p>
             <h2 class="font-normal text-gray-400 text-sm mt-1">Taux de Turnover</h2>
           </div>
           <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center">
@@ -55,7 +104,9 @@
           </div>
         </div>
         <div class="mt-3 flex justify-between text-xs">
-          <span class="text-red-600">+1.2% vs trimestre dernier</span>
+          <span :class="turnoverVariation >= 0 ? 'text-red-600' : 'text-green-600'">
+            {{ turnoverVariation >= 0 ? '+' : '' }}{{ turnoverVariation }}% vs mois dernier
+          </span>
           <span class="text-gray-500">Objectif: 7%</span>
         </div>
       </div>
@@ -185,7 +236,8 @@
       <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
           <h3 class="font-semibold text-gray-900 dark:text-gray-200">Alertes Fin de Contrat</h3>
-          <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">5 alertes</span>
+          <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{{ contractAlerts.length }}
+            alertes</span>
         </div>
         <div class="space-y-3">
           <div v-for="alert in contractAlerts" :key="alert.id"
@@ -206,7 +258,8 @@
       <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
           <h3 class="font-semibold text-gray-900 dark:text-gray-200">Congés Non Pris</h3>
-          <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">12 employés</span>
+          <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{{ unusedLeaves.length }}
+            employés</span>
         </div>
         <div class="space-y-3">
           <div v-for="leave in unusedLeaves" :key="leave.id"
@@ -286,22 +339,29 @@
 import { Icon } from "@iconify/vue";
 import PersonnelService from '@/services/PersonnelService';
 import EffectifService from '@/services/EffectifService';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 
 export default {
   name: "DashboardRH",
   data() {
-    // Obtenir la date actuelle - Novembre comme mois actuel
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = 11; // Novembre comme mois actuel
+    const currentMonth = 12; // Décembre comme mois actuel
 
     return {
+      showExportMenu: false,
+
       // Données d'effectif
       effectifData: [],
+      turnoverData: [],
       selectedYear: currentYear,
       currentMonth: currentMonth,
       currentMonthEffectif: 0,
       effectifVariation: 0,
+      currentMonthTurnover: 0,
+      turnoverVariation: 0,
 
       // Données pour les graphiques démographiques
       genderChart: {
@@ -344,18 +404,39 @@ export default {
       },
 
       turnoverTrend: {
-        series: [{ name: 'Taux de turnover', data: [6.8, 7.2, 8.1, 7.5, 8.2, 7.9, 8.2] }],
+        series: [{ name: 'Taux de turnover', data: [6.8, 7.2, 8.1, 7.5, 8.2, 7.9, 8.2, 8.5, 8.0, 7.8, 8.3, 8.1] }],
         options: {
           chart: { type: 'line', height: 350 },
           stroke: { width: 3, curve: 'smooth' },
-          xaxis: { categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul'] },
+          xaxis: {
+            categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
+            labels: {
+              style: {
+                colors: '#6B7280',
+                fontSize: '12px'
+              }
+            }
+          },
+          yaxis: {
+            labels: {
+              formatter: function (val) { return val + "%"; },
+              style: {
+                colors: '#6B7280',
+                fontSize: '12px'
+              }
+            }
+          },
           colors: ['#EF4444'],
-          markers: { size: 5 }
+          markers: { size: 5 },
+          grid: {
+            borderColor: '#E5E7EB',
+            strokeDashArray: 4,
+          }
         }
       },
 
       workforceTrend: {
-        series: [{ name: 'Effectifs', data: [15, 18, 22, 25, 28, 30, 12, 16, 19, 23, 20] }],
+        series: [{ name: 'Effectifs', data: [15, 18, 22, 25, 28, 30, 12, 16, 19, 23, 20, 22] }],
         options: {
           chart: {
             type: 'area',
@@ -366,7 +447,7 @@ export default {
           },
           stroke: { width: 3, curve: 'smooth' },
           xaxis: {
-            categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov'],
+            categories: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'],
             labels: {
               style: {
                 colors: '#6B7280',
@@ -415,14 +496,17 @@ export default {
       contractAlerts: [
         { id: 1, employee: "Marie Dubois", position: "Développeuse Frontend", department: "IT", endDate: "15/12/2024", daysLeft: 15 },
         { id: 2, employee: "Thomas Bernard", position: "Analyste Data", department: "Data", endDate: "20/12/2024", daysLeft: 20 },
-        { id: 3, employee: "Julie Petit", position: "Designer UI/UX", department: "Design", endDate: "25/12/2024", daysLeft: 25 }
+        { id: 3, employee: "Julie Petit", position: "Designer UI/UX", department: "Design", endDate: "25/12/2024", daysLeft: 25 },
+        { id: 4, employee: "Lucas Martin", position: "Chef de Projet", department: "IT", endDate: "31/12/2024", daysLeft: 31 }
       ],
 
       // Congés non pris
       unusedLeaves: [
         { id: 1, employee: "Pierre Martin", department: "Commercial", daysLeft: 12, deadline: "31/12/2024" },
         { id: 2, employee: "Sophie Laurent", department: "RH", daysLeft: 8, deadline: "31/12/2024" },
-        { id: 3, employee: "Marc Dupont", department: "IT", daysLeft: 15, deadline: "31/12/2024" }
+        { id: 3, employee: "Marc Dupont", department: "IT", daysLeft: 15, deadline: "31/12/2024" },
+        { id: 4, employee: "Laura Blanc", department: "Marketing", daysLeft: 10, deadline: "31/12/2024" },
+        { id: 5, employee: "David Moreau", department: "Production", daysLeft: 7, deadline: "31/12/2024" }
       ],
 
       // Statistiques par service
@@ -431,7 +515,8 @@ export default {
         { name: "Commercial", employees: 38, turnover: 8.2, absenteeism: 2.1, seniority: 4.2, budgetStatus: "dans budget", satisfaction: 8.2, color: "bg-green-500" },
         { name: "Marketing", employees: 22, turnover: 6.5, absenteeism: 4.8, seniority: 5.1, budgetStatus: "dans budget", satisfaction: 7.8, color: "bg-purple-500" },
         { name: "RH", employees: 15, turnover: 3.2, absenteeism: 2.5, seniority: 6.3, budgetStatus: "dans budget", satisfaction: 8.9, color: "bg-pink-500" },
-        { name: "Production", employees: 36, turnover: 15.2, absenteeism: 7.8, seniority: 2.8, budgetStatus: "dépassé", satisfaction: 6.5, color: "bg-orange-500" }
+        { name: "Production", employees: 36, turnover: 15.2, absenteeism: 7.8, seniority: 2.8, budgetStatus: "dépassé", satisfaction: 6.5, color: "bg-orange-500" },
+        { name: "Direction", employees: 8, turnover: 1.5, absenteeism: 1.2, seniority: 8.5, budgetStatus: "dans budget", satisfaction: 9.2, color: "bg-red-500" }
       ]
     };
   },
@@ -441,6 +526,11 @@ export default {
   async mounted() {
     await this.loadDashboardData();
     await this.loadEffectifData();
+    await this.loadTurnoverData();
+    this.setupClickOutsideListener();
+  },
+  beforeUnmount() {
+    this.removeClickOutsideListener();
   },
   methods: {
     async loadDashboardData() {
@@ -480,35 +570,64 @@ export default {
 
     async loadEffectifData() {
       try {
-        // Charger les données de janvier à novembre
-        const response = await EffectifService.getEffectifByMoisRange(1, 11, this.selectedYear);
+        // Charger les données de janvier à décembre
+        const response = await EffectifService.getEffectifByMoisRange(1, 12, this.selectedYear);
 
         if (response && Array.isArray(response)) {
           this.effectifData = response;
           this.calculateEffectifMetrics();
           this.updateWorkforceTrendChart();
         } else {
-          // Si pas de données, utiliser les données par défaut
           this.updateWorkforceTrendChart();
         }
       } catch (error) {
         console.error('Erreur lors du chargement des effectifs:', error);
-        // Utiliser les données par défaut en cas d'erreur
         this.updateWorkforceTrendChart();
+      }
+    },
+
+    async loadTurnoverData() {
+      try {
+        // Simulation de données de turnover
+        const response = await EffectifService.getTurnoverData(this.selectedYear);
+        if (response && Array.isArray(response)) {
+          this.turnoverData = response;
+          this.calculateTurnoverMetrics();
+          this.updateTurnoverTrendChart();
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du turnover:', error);
       }
     },
 
     calculateEffectifMetrics() {
       if (this.effectifData.length > 0) {
-        const novemberData = this.effectifData.find(item => item.mois === 11);
-        if (novemberData) {
-          this.currentMonthEffectif = novemberData.nbEmp;
+        const decemberData = this.effectifData.find(item => item.mois === 12);
+        if (decemberData) {
+          this.currentMonthEffectif = decemberData.nbEmp;
 
-          // Calculer la variation par rapport à octobre
-          const octoberData = this.effectifData.find(item => item.mois === 10);
-          if (octoberData && octoberData.nbEmp > 0) {
+          // Calculer la variation par rapport à novembre
+          const novemberData = this.effectifData.find(item => item.mois === 11);
+          if (novemberData && novemberData.nbEmp > 0) {
             this.effectifVariation = Math.round(
-              ((this.currentMonthEffectif - octoberData.nbEmp) / octoberData.nbEmp) * 100
+              ((this.currentMonthEffectif - novemberData.nbEmp) / novemberData.nbEmp) * 100
+            );
+          }
+        }
+      }
+    },
+
+    calculateTurnoverMetrics() {
+      if (this.turnoverData.length > 0) {
+        const decemberData = this.turnoverData.find(item => item.mois === 12);
+        if (decemberData) {
+          this.currentMonthTurnover = decemberData.taux;
+
+          // Calculer la variation par rapport à novembre
+          const novemberData = this.turnoverData.find(item => item.mois === 11);
+          if (novemberData && novemberData.taux > 0) {
+            this.turnoverVariation = Math.round(
+              ((this.currentMonthTurnover - novemberData.taux) / novemberData.taux) * 100
             );
           }
         }
@@ -516,28 +635,241 @@ export default {
     },
 
     updateWorkforceTrendChart() {
-      // Si on a des données d'effectif, les utiliser, sinon utiliser les données par défaut
       if (this.effectifData.length > 0) {
         const sortedData = this.effectifData.sort((a, b) => a.mois - b.mois);
 
-        // Mettre à jour les séries du graphique
         this.workforceTrend.series = [{
           name: 'Effectifs',
           data: sortedData.map(item => item.nbEmp)
         }];
 
-        // Mettre à jour les labels des mois (Janvier à Novembre)
         this.workforceTrend.options.xaxis.categories = sortedData.map(item =>
           this.getMonthName(item.mois).substring(0, 3)
         );
       }
-      // Sinon, garder les données par défaut définies dans data()
+    },
+
+    updateTurnoverTrendChart() {
+      if (this.turnoverData.length > 0) {
+        const sortedData = this.turnoverData.sort((a, b) => a.mois - b.mois);
+
+        this.turnoverTrend.series = [{
+          name: 'Taux de turnover',
+          data: sortedData.map(item => item.taux)
+        }];
+
+        this.turnoverTrend.options.xaxis.categories = sortedData.map(item =>
+          this.getMonthName(item.mois).substring(0, 3)
+        );
+      }
     },
 
     getMonthName(monthNumber) {
       const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
         'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
       return monthNames[monthNumber - 1];
+    },
+
+    toggleExportMenu() {
+      this.showExportMenu = !this.showExportMenu;
+    },
+
+    setupClickOutsideListener() {
+      this.clickOutsideHandler = (event) => {
+        if (this.$refs.exportMenu && !this.$refs.exportMenu.contains(event.target)) {
+          this.showExportMenu = false;
+        }
+      };
+      document.addEventListener('click', this.clickOutsideHandler);
+    },
+
+    removeClickOutsideListener() {
+      if (this.clickOutsideHandler) {
+        document.removeEventListener('click', this.clickOutsideHandler);
+      }
+    },
+
+    async exportPDF(type) {
+      try {
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+        const date = new Date().toLocaleDateString('fr-FR');
+
+        // En-tête
+        doc.setFontSize(20);
+        doc.setTextColor(44, 62, 80);
+        doc.text('Rapport RH - Tableau de Bord', 20, 20);
+
+        doc.setFontSize(11);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Date : ${date}`, 20, 30);
+        doc.text(`Période : Janvier - Décembre ${this.selectedYear}`, 20, 35);
+
+        let currentY = 45;
+
+        switch (type) {
+          case 'dashboard':
+            // Capture complète du dashboard
+            const canvas = await html2canvas(document.querySelector('.dashboard'), {
+              scale: 0.5,
+              useCORS: true
+            });
+            const imgData = canvas.toDataURL('image/png');
+            doc.addImage(imgData, 'PNG', 10, 45, 280, 160);
+            break;
+
+          case 'stats':
+            // Statistiques principales
+            doc.setFontSize(16);
+            doc.text('Statistiques Principales', 20, currentY);
+            currentY += 15;
+
+            // Tableau des statistiques
+            doc.autoTable({
+              startY: currentY,
+              head: [['Indicateur', 'Valeur', 'Variation', 'Commentaire']],
+              body: [
+                ['Effectif Total', this.currentMonthEffectif + ' employés',
+                  (this.effectifVariation >= 0 ? '+' : '') + this.effectifVariation + '%',
+                  `vs ${this.getMonthName(this.currentMonth - 1)}`],
+                ['Turnover', this.currentMonthTurnover + '%',
+                  (this.turnoverVariation >= 0 ? '+' : '') + this.turnoverVariation + '%',
+                  'Objectif: 7%'],
+                ['Absentéisme', '4.1%', '-0.3%', 'vs mois dernier'],
+                ['Ancienneté moyenne', '4.8 ans', '+6 mois', 'vs 2023'],
+                ['CDI', this.cdiPercentage + '%', '', ''],
+                ['Femmes', this.femalePercentage + '%', '', ''],
+                ['Hommes', this.malePercentage + '%', '', '']
+              ],
+              theme: 'striped',
+              headStyles: { fillColor: [44, 62, 80] },
+            });
+            break;
+
+          case 'alerts':
+            // Alertes et indicateurs
+            doc.setFontSize(16);
+            doc.text('Alertes et Indicateurs par Service', 20, currentY);
+            currentY += 15;
+
+            // Tableau des services
+            doc.autoTable({
+              startY: currentY,
+              head: [['Service', 'Effectif', 'Turnover', 'Absentéisme', 'Ancienneté', 'Satisfaction']],
+              body: this.departmentStats.map(dept => [
+                dept.name,
+                dept.employees,
+                dept.turnover + '%',
+                dept.absenteeism + '%',
+                dept.seniority + ' ans',
+                dept.satisfaction + '/10'
+              ]),
+              theme: 'striped',
+              headStyles: { fillColor: [44, 62, 80] },
+            });
+
+            currentY = doc.lastAutoTable.finalY + 15;
+
+            // Alertes fin de contrat
+            doc.setFontSize(14);
+            doc.text('Alertes Fin de Contrat', 20, currentY);
+            currentY += 10;
+
+            doc.autoTable({
+              startY: currentY,
+              head: [['Employé', 'Poste', 'Service', 'Date fin', 'Jours restants']],
+              body: this.contractAlerts.map(alert => [
+                alert.employee,
+                alert.position,
+                alert.department,
+                alert.endDate,
+                alert.daysLeft
+              ]),
+              theme: 'striped',
+              headStyles: { fillColor: [192, 57, 43] },
+            });
+            break;
+        }
+
+        doc.save(`rapport-rh-${type}-${date}.pdf`);
+        this.showExportMenu = false;
+
+      } catch (error) {
+        console.error('Erreur lors de l\'export PDF:', error);
+        alert('Erreur lors de l\'export PDF');
+      }
+    },
+
+    exportCSV(type) {
+      try {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        let filename = '';
+
+        switch (type) {
+          case 'effectif':
+            filename = 'effectifs-annuel.csv';
+            csvContent += "Mois,Nombre d'employés\n";
+            this.effectifData.forEach(item => {
+              csvContent += `${this.getMonthName(item.mois)},${item.nbEmp}\n`;
+            });
+            break;
+
+          case 'turnover':
+            filename = 'turnover-annuel.csv';
+            csvContent += "Mois,Taux de turnover\n";
+            for (let i = 1; i <= 12; i++) {
+              const monthData = this.turnoverData.find(item => item.mois === i);
+              const taux = monthData ? monthData.taux : 0;
+              csvContent += `${this.getMonthName(i)},${taux}%\n`;
+            }
+            break;
+
+          case 'demographics':
+            filename = 'demographie.csv';
+            csvContent += "Catégorie,Valeur\n";
+            csvContent += `Total employés,${this.totalEmployees}\n`;
+            csvContent += `Hommes,${this.malePercentage}%\n`;
+            csvContent += `Femmes,${this.femalePercentage}%\n`;
+            csvContent += `CDI,${this.cdiPercentage}%\n`;
+            csvContent += `CDD,${this.cddPercentage}%\n`;
+            csvContent += `Contrat d'essai,${this.essaiPercentage}%\n`;
+            break;
+
+          case 'departments':
+            filename = 'statistiques-services.csv';
+            csvContent += "Service,Effectif,Turnover,Absentéisme,Ancienneté,Budget,Satisfaction\n";
+            this.departmentStats.forEach(dept => {
+              csvContent += `${dept.name},${dept.employees},${dept.turnover}%,${dept.absenteeism}%,${dept.seniority} ans,${dept.budgetStatus},${dept.satisfaction}/10\n`;
+            });
+            break;
+
+          case 'alerts-list':
+            filename = 'alertes.csv';
+            csvContent += "Type,Employé,Service,Poste,Jours restants,Date limite\n";
+
+            this.contractAlerts.forEach(alert => {
+              csvContent += `Fin de contrat,${alert.employee},${alert.department},${alert.position},${alert.daysLeft},${alert.endDate}\n`;
+            });
+
+            this.unusedLeaves.forEach(leave => {
+              csvContent += `Congés non pris,${leave.employee},${leave.department},,${leave.daysLeft},${leave.deadline}\n`;
+            });
+            break;
+        }
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        this.showExportMenu = false;
+
+      } catch (error) {
+        console.error('Erreur lors de l\'export CSV:', error);
+        alert('Erreur lors de l\'export CSV');
+      }
     }
   }
 };
@@ -559,5 +891,26 @@ export default {
 
 .ps {
   max-height: 400px;
+}
+
+/* Style pour le menu déroulant */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+  right: 0;
+}
+
+/* Animation pour le menu */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
