@@ -21,7 +21,10 @@
                         </div>
                         <div>
                             <h3 class="font-semibold text-gray-900 dark:text-white">Assistant RH</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">En ligne <span class="text-green-500">•</span></p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ isConnected ? 'En ligne' : 'Hors ligne' }}
+                                <span :class="isConnected ? 'text-green-500' : 'text-red-500'">•</span>
+                            </p>
                         </div>
                     </div>
                     <button @click="toggleChat"
@@ -63,6 +66,21 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Message d'erreur -->
+                    <div v-if="errorMessage" class="message bot">
+                        <div class="message-avatar">
+                            <div
+                                class="w-6 h-6 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                                <Icon icon="heroicons:exclamation-triangle-20-solid" class="text-white text-xs" />
+                            </div>
+                        </div>
+                        <div class="message-content">
+                            <div class="bot-bubble error-bubble">
+                                {{ errorMessage }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Zone de saisie -->
@@ -71,14 +89,17 @@
                         <input v-model="userInput" @keypress.enter="sendMessage" type="text"
                             placeholder="Posez votre question..."
                             class="w-full p-3 pr-12 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
-                            :disabled="isTyping" />
-                        <button @click="sendMessage" :disabled="!userInput.trim() || isTyping"
+                            :disabled="isTyping || !isConnected" />
+                        <button @click="sendMessage" :disabled="!userInput.trim() || isTyping || !isConnected"
                             class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-primary hover:text-primary/80 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors">
                             <Icon icon="heroicons:paper-airplane-20-solid" class="text-xl" />
                         </button>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-                        Assistant IA • Réponses en temps réel
+                    <p v-if="!isConnected" class="text-xs text-red-500 dark:text-red-400 mt-2 text-center">
+                        ⚠️ L'assistant est temporairement hors ligne
+                    </p>
+                    <p v-else class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                        Assistant IA • Connexion active à l'API
                     </p>
                 </div>
             </div>
@@ -99,6 +120,9 @@ export default {
             isOpen: false,
             userInput: "",
             isTyping: false,
+            isConnected: true,
+            errorMessage: "",
+            apiUrl: "http://127.0.0.1:2025/ask/",
             messages: [
                 {
                     type: "bot",
@@ -109,16 +133,8 @@ export default {
         };
     },
     methods: {
-        toggleChat() {
-            this.isOpen = !this.isOpen;
-            if (this.isOpen) {
-                this.$nextTick(() => {
-                    this.scrollToBottom();
-                });
-            }
-        },
-        sendMessage() {
-            if (!this.userInput.trim() || this.isTyping) return;
+        async sendMessage() {
+            if (!this.userInput.trim() || this.isTyping || !this.isConnected) return;
 
             const userMessage = {
                 type: "user",
@@ -129,50 +145,183 @@ export default {
             this.messages.push(userMessage);
             const userQuestion = this.userInput;
             this.userInput = "";
+            this.errorMessage = "";
 
             this.scrollToBottom();
 
-            // Simulation de réponse IA
+            // Appel à l'API
             this.isTyping = true;
-            setTimeout(() => {
-                this.generateResponse(userQuestion);
-                this.isTyping = false;
-                this.scrollToBottom();
-            }, 1000 + Math.random() * 1000);
+            await this.getAIResponse(userQuestion);
+            this.isTyping = false;
+            this.scrollToBottom();
         },
-        generateResponse(question) {
-            const responses = {
-                "congé": "Pour gérer les congés, vous pouvez :\n• Consulter le calendrier des congés\n• Soumettre une nouvelle demande\n• Voir le solde de vos congés\n• Suivre l'état de vos demandes",
-                "employé": "La gestion des employés inclut :\n• Consultation de la liste des employés\n• Ajout de nouveaux employés\n• Modification des informations\n• Gestion des contrats",
-                "poste": "Pour la gestion des postes :\n• Consulter les postes disponibles\n• Créer de nouveaux postes\n• Voir l'organigramme\n• Définir les compétences requises",
-                "dashboard": "Le tableau de bord vous montre :\n• Statistiques des employés\n• Congés en cours\n• Alertes importantes\n• Activités récentes",
-                "aide": "Je peux vous aider avec :\n• Gestion des congés\n• Informations employés\n• Processus RH\n• Utilisation du système\nPosez-moi une question spécifique !",
-                "bonjour": "Bonjour ! Comment puis-je vous aider avec votre ERP RH aujourd'hui ?",
-                "merci": "De rien ! N'hésitez pas si vous avez d'autres questions. 😊"
-            };
 
-            const questionLower = question.toLowerCase();
-            let response = "Je comprends que vous avez besoin d'aide. Pouvez-vous préciser votre question ? Je peux vous aider avec la gestion des congés, des employés, des postes, ou d'autres aspects de l'ERP RH.";
+        async getAIResponse(question) {
+            try {
+                console.log("Envoi de la question à l'API:", question);
+                const response = await fetch(`${this.apiUrl}?question=${encodeURIComponent(question)}`);
 
-            for (const [key, value] of Object.entries(responses)) {
-                if (questionLower.includes(key)) {
-                    response = value;
-                    break;
+                console.log("Statut de la réponse:", response.status);
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                // Obtenir le texte brut de la réponse
+                const responseText = await response.text();
+                console.log("Réponse brute de l'API:", responseText);
+
+                // Extraire la réponse du format "response `message`"
+                let extractedResponse = this.extractResponseFromText(responseText);
+
+                console.log("Réponse extraite:", extractedResponse);
+
+                // Ajouter la réponse au chat
+                this.messages.push({
+                    type: "bot",
+                    text: extractedResponse,
+                    time: this.getCurrentTime()
+                });
+
+                // Réactiver la connexion si elle était désactivée
+                if (!this.isConnected) {
+                    this.isConnected = true;
+                }
+
+            } catch (error) {
+                console.error("Erreur API:", error);
+
+                // Désactiver la connexion
+                this.isConnected = false;
+
+                // Message d'erreur
+                this.errorMessage = `Impossible de se connecter à l'assistant. L'API est hors ligne ou inaccessible.`;
+
+                // Optionnel : ajouter un message de secours
+                this.messages.push({
+                    type: "bot",
+                    text: "Je suis désolé, je rencontre des difficultés techniques. Voici quelques informations utiles :\n\n• Gestion des congés : Consultez le module Congés\n• Employés : Accédez à la liste des employés\n• Postes : Voir les postes disponibles\n• Contactez le support pour plus d'aide",
+                    time: this.getCurrentTime()
+                });
+            }
+        },
+
+        // Méthode pour extraire la réponse du format texte
+        extractResponseFromText(text) {
+            // Vérifier si le texte correspond au format "response `message`"
+            const pattern = /response\s+`([^`]+)`/;
+            const match = text.match(pattern);
+
+            if (match && match[1]) {
+                // Nettoyer et formater la réponse
+                return match[1]
+                    .replace(/\\n/g, '\n')  // Convertir \n en sauts de ligne réels
+                    .replace(/\\t/g, '  ')   // Convertir \t en espaces
+                    .trim();
+            }
+
+            // Si le format n'est pas reconnu, essayer d'autres patterns
+            if (text.includes('`')) {
+                // Essayer d'extraire tout ce qui est entre backticks
+                const backtickMatch = text.match(/`([^`]+)`/);
+                if (backtickMatch && backtickMatch[1]) {
+                    return backtickMatch[1]
+                        .replace(/\\n/g, '\n')
+                        .replace(/\\t/g, '  ')
+                        .trim();
                 }
             }
 
-            this.messages.push({
-                type: "bot",
-                text: response,
-                time: this.getCurrentTime()
-            });
+            // Si aucun pattern ne correspond, retourner le texte tel quel
+            return text
+                .replace(/\\n/g, '\n')
+                .replace(/\\t/g, '  ')
+                .trim();
         },
+
+        // Méthode alternative si l'API retourne du JSON
+        async getAIResponseJSON(question) {
+            try {
+                const response = await fetch(this.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        context: "ERP RH"
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                let responseText;
+                if (data.response) {
+                    responseText = data.response;
+                } else if (data.answer) {
+                    responseText = data.answer;
+                } else if (data.message) {
+                    responseText = data.message;
+                } else {
+                    responseText = "Réponse de l'assistant.";
+                }
+
+                this.messages.push({
+                    type: "bot",
+                    text: responseText,
+                    time: this.getCurrentTime()
+                });
+
+            } catch (error) {
+                console.error("Erreur API:", error);
+                this.handleApiError();
+            }
+        },
+
+        handleApiError() {
+            this.isConnected = false;
+            this.errorMessage = "Service temporairement indisponible";
+
+            // Réessayer après 30 secondes
+            setTimeout(() => {
+                this.testConnection();
+            }, 30000);
+        },
+
+        async testConnection() {
+            try {
+                const response = await fetch(`${this.apiUrl}?question=test`);
+                if (response.ok) {
+                    this.isConnected = true;
+                    this.errorMessage = "";
+                }
+            } catch (error) {
+                console.log("Connexion toujours indisponible");
+            }
+        },
+
+        toggleChat() {
+            this.isOpen = !this.isOpen;
+            if (this.isOpen) {
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
+                // Tester la connexion quand on ouvre le chat
+                this.testConnection();
+            }
+        },
+
         getCurrentTime() {
             return new Date().toLocaleTimeString('fr-FR', {
                 hour: '2-digit',
                 minute: '2-digit'
             });
         },
+
         scrollToBottom() {
             this.$nextTick(() => {
                 const container = this.$refs.messagesContainer;
@@ -190,6 +339,9 @@ export default {
                 this.isOpen = false;
             }
         });
+
+        // Tester la connexion au démarrage
+        this.testConnection();
     }
 };
 </script>
@@ -323,9 +475,21 @@ export default {
     border-bottom-left-radius: 6px;
 }
 
+.error-bubble {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
 .dark .bot-bubble {
     background: #374151;
     color: #f3f4f6;
+}
+
+.dark .error-bubble {
+    background: #7f1d1d;
+    color: #fca5a5;
+    border-color: #991b1b;
 }
 
 .message-time {
