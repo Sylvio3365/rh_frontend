@@ -38,7 +38,7 @@
                                         @click="selectEmployee(employee)"
                                         class="p-3 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0">
                                         <div class="flex items-center">
-                                            <img :src="employee.photo" :alt="employee.nom"
+                                            <img src="@/assets/img/user1.png" :alt="employee.nom"
                                                 class="w-8 h-8 rounded-full mr-3">
                                             <div>
                                                 <div class="font-medium text-gray-900 dark:text-white">
@@ -58,15 +58,15 @@
                                 class="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
-                                        <img :src="demande.employe.photo" :alt="demande.employe.nom"
-                                            class="w-10 h-10 rounded-full mr-3">
+                                        <img src="@/assets/img/user1.png" :alt="demande.employe.nom"
+                                                class="w-8 h-8 rounded-full mr-3">
                                         <div>
                                             <div class="font-medium text-gray-900 dark:text-white">
                                                 {{ demande.employe.prenom }} {{ demande.employe.nom }}
                                             </div>
-                                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                            <!-- <div class="text-sm text-gray-600 dark:text-gray-400">
                                                 {{ demande.employe.poste }} • {{ demande.employe.departement }}
-                                            </div>
+                                            </div> -->
                                         </div>
                                     </div>
                                     <button type="button" @click="demande.employe = null"
@@ -428,38 +428,52 @@ export default {
         async loadAllPersonnel() {
             this.isLoadingEmployees = true;
             try {
-                const personnels = await PersonnelService.getAllPersonnel();
+                const response = await PersonnelService.getAllPersonnel();
 
-                // Pour chaque personnel, récupérer le contrat actif
-                const employeesWithContract = await Promise.all(personnels.map(async (personnel) => {
-                    let contratActif = null;
-                    try {
-                        contratActif = await PersonnelService.getContratActif(personnel.idPersonnel);
-                    } catch (e) {
-                        console.warn(`Impossible de récupérer le contrat actif pour ${personnel.nom} ${personnel.prenom}`, e);
-                    }
+                // L'API retourne un objet avec une propriété 'data' qui contient le tableau
+                const personnels = response.data;
 
-                    return {
-                        id: personnel.idPersonnel,
-                        nom: personnel.nom,
-                        prenom: personnel.prenom,
-                        poste: contratActif?.poste?.nom || 'Non défini',
-                        departement: contratActif?.poste?.departement?.libelle || 'Non défini',
-                        photo: personnel.photo || '/assets/img/default-user.png',
-                        email: personnel.email || ''
-                    };
-                }));
+                if (!personnels || !Array.isArray(personnels)) {
+                    console.error('❌ La réponse des personnels n\'est pas un tableau:', response);
+                    this.employees = [];
+                    alert('Erreur: Aucun employé trouvé ou format de données incorrect.');
+                    return;
+                }
+
+                console.log('✅ Personnels récupérés:', personnels);
+
+                const employeesWithContract = await Promise.all(
+                    personnels.map(async (personnel) => {
+                        let contratActif = null;
+                        try {
+                            contratActif = await PersonnelService.getContratActif(personnel.idPersonnel);
+                        } catch (e) {
+                            console.warn(`Impossible de récupérer le contrat actif pour ${personnel.nom} ${personnel.prenom}`, e);
+                        }
+
+                        return {
+                            id: personnel.idPersonnel,
+                            nom: personnel.nom,
+                            prenom: personnel.prenom,
+                            poste: contratActif?.poste?.nom || 'Non défini',
+                            departement: contratActif?.poste?.departement?.libelle || 'Non défini',
+                            photo: personnel.photo || '/assets/img/default-user.png',
+                            email: personnel.email || ''
+                        };
+                    })
+                );
 
                 this.employees = employeesWithContract;
+                console.log('✅ Employés transformés:', this.employees);
 
             } catch (error) {
                 console.error('Erreur lors du chargement des employés:', error);
-                alert('Impossible de charger la liste des employés. Veuillez réessayer.');
+                alert('Impossible de charger la liste des employés. Veuillez réessayer. Erreur : ' + error.message);
+                this.employees = [];
             } finally {
                 this.isLoadingEmployees = false;
             }
         },
-
 
         async selectEmployee(employee) {
             this.demande.employe = employee;
