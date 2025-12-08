@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <div v-if="errorMessage" 
+        <div v-if="errorMessage"
             class="mb-4 p-4 text-red-800 bg-red-100 border border-red-300 rounded-lg dark:bg-red-900 dark:text-red-100 dark:border-red-700">
             {{ errorMessage }}
         </div>
@@ -60,7 +60,7 @@
                         {{ employe.statut }}
                     </span>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                        Employé depuis {{ employe.anciennete  }} 
+                        Employé depuis {{ employe.anciennete }}
                     </p>
                 </div>
             </div>
@@ -154,18 +154,19 @@
                     </h2>
                     <div class="space-y-4">
                         <div v-for="histo in historiquePostes" class="border-l-4 border-primary pl-4 py-2">
-                            <div class="flex justify-between items-start"> 
+                            <div class="flex justify-between items-start">
                                 <div>
                                     <h3 class="font-medium text-gray-900 dark:text-white">{{ histo.poste }}</h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400"> Département : {{ histo.departement }}</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400"> Salaire : {{ histo.salaire.toLocaleString() }} MGA </p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400"> Département : {{
+                                        histo.departement }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400"> Salaire : {{
+                                        histo.salaire.toLocaleString() }} MGA </p>
                                     <!-- Badge du mouvement -->
-                                    <span class="inline-block mt-1 px-2 py-1 text-xs rounded-full"
-                                        :class="{
-                                            'bg-blue-100 text-blue-800': histo.mouvement === 'Mobilité',
-                                            'bg-green-100 text-green-800': histo.mouvement === 'Promotion',
-                                            'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300': histo.mouvement === 'Premier poste'
-                                        }">
+                                    <span class="inline-block mt-1 px-2 py-1 text-xs rounded-full" :class="{
+                                        'bg-blue-100 text-blue-800': histo.mouvement === 'Mobilité',
+                                        'bg-green-100 text-green-800': histo.mouvement === 'Promotion',
+                                        'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300': histo.mouvement === 'Premier poste'
+                                    }">
                                         {{ histo.mouvement }}
                                     </span>
                                 </div>
@@ -178,22 +179,21 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Documents -->
                 <div v-if="ongletActif === 'documents'" class="space-y-4">
-                    <div v-if="documents.length === 0"
-                        class="text-gray-500 dark:text-gray-400 italic text-center py-6">
+                    <div v-if="documents.length === 0" class="text-gray-500 dark:text-gray-400 italic text-center py-6">
                         Aucun document disponible pour cet employé.
                     </div>
 
                     <!-- Liste documents -->
                     <div v-for="doc in documents" :key="doc.id"
                         class="flex items-center justify-between gap-4 p-4 rounded-lg border dark:border-gray-700 bg-gray-50 dark:bg-gray-800 shadow">
-                        <img
-                            v-if="doc.docs && doc.docs.toLowerCase().endsWith('.jpg') || doc.docs.toLowerCase().endsWith('.png')"
+                        <img v-if="doc.docs && doc.docs.toLowerCase().endsWith('.jpg') || doc.docs.toLowerCase().endsWith('.png')"
                             :src="`http://localhost:9090/uploads/documents/${doc.docs}`"
-                            class="w-14 h-14 object-cover rounded-md border"
-                        />
-                        <div v-else class="w-14 h-14 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-md">
+                            class="w-14 h-14 object-cover rounded-md border" />
+                        <div v-else
+                            class="w-14 h-14 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-md">
                             <Icon icon="mdi:file-document" class="text-gray-600 text-3xl" />
                         </div>
                         <div class="flex-1">
@@ -216,58 +216,145 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Onglet Fiche de Paie -->
+                <div v-if="ongletActif === 'fiche-paie'"
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Générer la Fiche de Paie</h2>
+
+                    <!-- Message d'information -->
+                    <div v-if="messageFiche" :class="[
+                        'mb-4 p-4 rounded-lg border',
+                        messageFiche.type === 'success'
+                            ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-100 dark:border-green-700'
+                            : 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900 dark:text-red-100 dark:border-red-700'
+                    ]">
+                        {{ messageFiche.text }}
+                    </div>
+
+                    <!-- Formulaire de sélection -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Mois
+                            </label>
+                            <select v-model="moisSelectionne"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                                <option value="">Sélectionnez un mois</option>
+                                <option v-for="(mois, index) in listeMois" :key="index" :value="index + 1">
+                                    {{ mois }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Année
+                            </label>
+                            <input type="number" v-model="anneeSelectionnee" min="2000" max="2100"
+                                placeholder="Ex: 2025"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Saisissez l'année (ex: 2025)
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Bouton de génération -->
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            Le fichier Excel sera généré et téléchargé automatiquement
+                        </div>
+                        <button @click="genererFichePaie"
+                            :disabled="!moisSelectionne || !anneeSelectionnee || generationEnCours" :class="[
+                                'px-6 py-3 rounded-lg font-medium transition duration-200',
+                                moisSelectionne && anneeSelectionnee && !generationEnCours
+                                    ? 'bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg'
+                                    : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                            ]">
+                            <span v-if="generationEnCours" class="flex items-center">
+                                <Icon icon="mdi:loading" class="animate-spin mr-2" />
+                                Génération en cours...
+                            </span>
+                            <span v-else class="flex items-center">
+                                <Icon icon="mdi:file-excel" class="mr-2" />
+                                Générer la fiche de paie
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Historique des fiches générées -->
+                    <div v-if="historiqueFiches.length > 0" class="mt-8">
+                        <h3 class="text-md font-semibold text-gray-900 dark:text-white mb-4">
+                            Historique des fiches générées
+                        </h3>
+                        <div
+                            class="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div v-for="fiche in historiqueFiches" :key="fiche.id"
+                                class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-100 dark:hover:bg-gray-800">
+                                <div>
+                                    <p class="font-medium text-gray-900 dark:text-white">
+                                        {{ getNomMois(fiche.mois) }} {{ fiche.annee }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        Générée le {{ formatDateHeure(fiche.dateGeneration) }}
+                                    </p>
+                                </div>
+                                <button @click="telechargerFicheExistante(fiche.id)"
+                                    class="flex items-center text-primary hover:text-primary/80">
+                                    <Icon icon="mdi:download" class="mr-1" />
+                                    Télécharger
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+
             <!-- Zone d'affichage -->
             <!-- MODAL DOCUMENT -->
-            <div v-if="modalVisible"
-                class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div v-if="modalVisible" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
                 <div class="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-xl relative"
                     style="width: 80%; max-width: 900px; max-height: 90%; overflow: auto;">
                     <!-- Bouton fermer -->
                     <button @click="fermerDocument"
-                            class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded">
+                        class="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded">
                         ✖
                     </button>
                     <!-- PDF -->
-                    <iframe 
-                        v-if="documentAffiche && documentAffiche.endsWith('.pdf')"
-                        :src="documentAffiche"
+                    <iframe v-if="documentAffiche && documentAffiche.endsWith('.pdf')" :src="documentAffiche"
                         style="width: 100%; height: 80vh;">
                     </iframe>
                     <!-- Image -->
-                    <img 
-                        v-else-if="documentAffiche"
-                        :src="documentAffiche"
+                    <img v-else-if="documentAffiche" :src="documentAffiche"
                         style="max-width: 100%; max-height: 80vh; margin: auto; display: block;">
                 </div>
-
             </div>
 
             <!-- Confirmation de suppression -->
             <div v-if="showConfirmDelete"
                 class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-[350px] shadow-xl">
-                <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                    Confirmer la suppression
-                </h2>
-                <p class="text-gray-700 dark:text-gray-300 mb-6">
-                    Voulez-vous vraiment supprimer ce document : 
-                    <strong>{{ docToDelete?.typeDocument?.libelle }}</strong> ?
-                </p>
-                <div class="flex justify-end space-x-3">
-                    <button 
-                        @click="showConfirmDelete = false"
-                        class="px-4 py-2 rounded bg-gray-300 dark:bg-gray-600 hover:bg-gray-400">
-                        Annuler
-                    </button>
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-[350px] shadow-xl">
+                    <h2 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                        Confirmer la suppression
+                    </h2>
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">
+                        Voulez-vous vraiment supprimer ce document :
+                        <strong>{{ docToDelete?.typeDocument?.libelle }}</strong> ?
+                    </p>
+                    <div class="flex justify-end space-x-3">
+                        <button @click="showConfirmDelete = false"
+                            class="px-4 py-2 rounded bg-gray-300 dark:bg-gray-600 hover:bg-gray-400">
+                            Annuler
+                        </button>
 
-                    <button 
-                        @click="supprimerDocument"
-                        class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
-                        Supprimer
-                    </button>
+                        <button @click="supprimerDocument"
+                            class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
+                            Supprimer
+                        </button>
+                    </div>
                 </div>
-            </div>
             </div>
 
             <!-- Colonne latérale -->
@@ -307,7 +394,8 @@
                             class="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded">
                             <div class="flex items-center">
                                 <Icon :icon="getIconDocument(doc.typeDocument)" class="text-gray-400 mr-2" />
-                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ doc.typeDocument.libelle }}</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ doc.typeDocument.libelle
+                                }}</span>
                             </div>
                             <button @click="telechargerDocument(doc)" class="text-primary hover:text-primary/80">
                                 <Icon icon="mdi:download" />
@@ -321,31 +409,28 @@
                         </h3>
                         <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">Type de document</label>
                         <select v-model="nouveauDocument.type"
-                                class="w-full border rounded p-2 mb-3 dark:bg-gray-800 dark:text-white">
+                            class="w-full border rounded p-2 mb-3 dark:bg-gray-800 dark:text-white">
                             <option disabled value="">-- Sélectionner --</option>
                             <option v-for="t in typesDocument" :key="t.idTypeDocument" :value="t.idTypeDocument">
                                 {{ t.libelle }}
                             </option>
                         </select>
                         <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">Fichier</label>
-                        <input type="file"
-                            @change="onFileSelected"
+                        <input type="file" @change="onFileSelected"
                             class="w-full border rounded p-2 mb-3 dark:bg-gray-800 dark:text-white" />
 
                         <div class="flex gap-4">
                             <button @click="envoyerDocument"
-                                    class="bg-primary text-white px-4 py-2 rounded hover:bg-primary/80">
+                                class="bg-primary text-white px-4 py-2 rounded hover:bg-primary/80">
                                 Enregistrer
                             </button>
 
-                            <button @click="afficherFormDocument = false"
-                                    class="px-4 py-2 rounded border">
+                            <button @click="afficherFormDocument = false" class="px-4 py-2 rounded border">
                                 Annuler
                             </button>
                         </div>
-                    </div> 
-                    <button
-                        @click="afficherFormDocument = true"
+                    </div>
+                    <button @click="afficherFormDocument = true"
                         class="w-full mt-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 text-center text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
                         <Icon icon="mdi:plus" class="mr-1" />
                         Ajouter un document
@@ -373,10 +458,10 @@ export default {
                 { id: 'professionnel', nom: 'Professionnel' },
                 { id: 'historique', nom: 'Historique' },
                 { id: 'documents', nom: 'Documents' },
-                { id: 'contrat', nom: 'Contrat' }
+                { id: 'fiche-paie', nom: 'Fiche de Paie' }
             ],
-            employe: {},                
-            historiquePostes: [],     
+            employe: {},
+            historiquePostes: [],
             documents: [],
             errorMessage: null,
             afficherFormDocument: false,
@@ -389,6 +474,17 @@ export default {
             modalVisible: false,
             showConfirmDelete: false,
             docToDelete: null,
+
+            // Données pour l'onglet fiche de paie
+            moisSelectionne: '',
+            anneeSelectionnee: '',
+            listeMois: [
+                'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+            ],
+            generationEnCours: false,
+            messageFiche: null,
+            historiqueFiches: []
         };
     },
     mounted() {
@@ -504,7 +600,7 @@ export default {
             } catch (error) {
                 this.errorMessage = res.data.error;
             }
-            
+
         },
         formatDate(date) {
             if (!date) return 'Non spécifié';
@@ -528,7 +624,7 @@ export default {
                 alert("Veuillez remplir tous les champs.");
                 return;
             }
-            
+
             const id = this.$route.params.id;
             const formData = new FormData();
             formData.append("id_personnel", id);
@@ -560,12 +656,12 @@ export default {
         fermerDocument() {
             this.modalVisible = false;
             this.documentAffiche = null;
-        },   
+        },
         async supprimerDocument() {
             if (!this.docToDelete) return;
             try {
                 const res = await axios.delete(`http://localhost:9090/documents/${this.docToDelete.idPersonnel}/${this.docToDelete.idTypeDocument}`);
-                if(!res.data.success) {
+                if (!res.data.success) {
                     this.errorMessage = res.data.error;
                     return;
                 }
@@ -577,7 +673,6 @@ export default {
             this.showConfirmDelete = false;
             this.docToDelete = null;
         },
-
         telechargerDocument(doc) {
             const url = `http://localhost:9090/documents/download/${doc.docs}`;
             const link = document.createElement('a');
@@ -586,7 +681,110 @@ export default {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        },
+
+        // Méthodes pour l'onglet fiche de paie
+        async genererFichePaie() {
+            if (!this.moisSelectionne || !this.anneeSelectionnee) {
+                this.messageFiche = {
+                    type: 'error',
+                    text: 'Veuillez sélectionner un mois et une année'
+                };
+                return;
+            }
+
+            this.generationEnCours = true;
+            this.messageFiche = null;
+
+            try {
+                const id = this.$route.params.id;
+                const url = `http://localhost:9090/api/fiche-paie/${id}/excel?mois=${this.moisSelectionne}&annee=${this.anneeSelectionnee}`;
+
+                // Utiliser axios pour télécharger le fichier
+                const response = await axios({
+                    url: url,
+                    method: 'GET',
+                    responseType: 'blob', // Important pour les fichiers
+                });
+
+                // Créer un lien pour télécharger le fichier
+                const blob = new Blob([response.data], {
+                    type: response.headers['content-type']
+                });
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+
+                // Nom du fichier basé sur la date
+                const nomFichier = `fiche_paie_${this.employe.nom}_${this.employe.prenom}_${this.moisSelectionne}_${this.anneeSelectionnee}.xlsx`;
+                link.download = nomFichier;
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(downloadUrl);
+
+                // Message de succès
+                this.messageFiche = {
+                    type: 'success',
+                    text: `Fiche de paie générée avec succès pour ${this.getNomMois(this.moisSelectionne)} ${this.anneeSelectionnee}`
+                };
+
+                // Ajouter à l'historique
+                this.historiqueFiches.unshift({
+                    id: Date.now(),
+                    mois: this.moisSelectionne,
+                    annee: this.anneeSelectionnee,
+                    dateGeneration: new Date().toISOString()
+                });
+
+                // Réinitialiser les sélections
+                this.moisSelectionne = '';
+                this.anneeSelectionnee = '';
+
+            } catch (error) {
+                console.error('Erreur lors de la génération de la fiche de paie:', error);
+                this.messageFiche = {
+                    type: 'error',
+                    text: 'Erreur lors de la génération de la fiche de paie. Veuillez réessayer.'
+                };
+            } finally {
+                this.generationEnCours = false;
+            }
+        },
+
+        getNomMois(numeroMois) {
+            return this.listeMois[numeroMois - 1] || '';
+        },
+
+        formatDateHeure(dateISO) {
+            if (!dateISO) return '';
+            const date = new Date(dateISO);
+            return date.toLocaleDateString('fr-FR') + ' à ' + date.toLocaleTimeString('fr-FR');
+        },
+
+        telechargerFicheExistante(idFiche) {
+            // Cette méthode pourrait appeler une API pour télécharger une fiche existante
+            // Pour l'instant, on affiche un message
+            alert('Fonctionnalité de téléchargement des fiches existantes à implémenter');
         }
     }
 };
 </script>
+
+<style scoped>
+/* Animation pour le bouton de chargement */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+</style>

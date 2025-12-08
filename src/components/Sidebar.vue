@@ -29,44 +29,42 @@
               </span>
               <span class="w-full"> Tableau de bord </span>
             </router-link>
-
-          <div class="item mt-3">
-            <menu-accordion>
-              <template v-slot:icon>
-                <Icon icon="mdi:account-group" />
-              </template>
-              <template v-slot:title> Gestion de Présence </template>
-              <template v-slot:content>
-                <router-link to="/heures-sup" exact
-                             class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+          </div>
+          <div class="item">
+            <router-link to="/pointage" exact
+              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
               <span class="mr-3 text-xl">
                 <Icon icon="bxs:dashboard" />
               </span>
-                  <span class="w-full"> Heure Supplémentaires </span>
-                </router-link>
-                <router-link to="/presence" exact
-                             class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+              <span class="w-full"> Pointage </span>
+            </router-link>
+          </div>
+          <div class="item">
+            <router-link to="/historique" exact
+              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
               <span class="mr-3 text-xl">
                 <Icon icon="bxs:dashboard" />
               </span>
-                  <span class="w-full"> Présence </span>
-                </router-link>
-                <router-link to="/historique" exact
-                             class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+              <span class="w-full"> Historique Pointage </span>
+            </router-link>
+          </div>
+          <div class="item">
+            <router-link to="/presence" exact
+              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
               <span class="mr-3 text-xl">
                 <Icon icon="bxs:dashboard" />
               </span>
-                  <span class="w-full"> Historique Pointage </span>
-                </router-link>
-                <router-link to="/pointage" exact
-                             class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
+              <span class="w-full"> Présence </span>
+            </router-link>
+          </div>
+          <div class="item">
+            <router-link to="/heures-sup" exact
+              class="w-full flex text-left rounded-md box-border p-3 hover:bg-gray-200 dark:hover:bg-gray-700">
               <span class="mr-3 text-xl">
                 <Icon icon="bxs:dashboard" />
               </span>
-                  <span class="w-full"> Pointage </span>
-                </router-link>
-              </template>
-            </menu-accordion>
+              <span class="w-full"> Heure Supplémentaires </span>
+            </router-link>
           </div>
           <div class="item mt-3">
             <menu-accordion>
@@ -201,9 +199,7 @@
         </div>
       </div>
     </div>
-    </div>
   </nav>
-
 </template>
 
 <script>
