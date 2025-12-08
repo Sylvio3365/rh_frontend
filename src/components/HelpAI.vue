@@ -158,34 +158,38 @@ export default {
 
         async getAIResponse(question) {
             try {
-                console.log("Envoi de la question à l'API:", question);
-                const response = await fetch(`${this.apiUrl}?question=${encodeURIComponent(question)}`);
-
-                console.log("Statut de la réponse:", response.status);
+                console.log("Question envoyée:", question);
+                const response = await fetch(`${this.apiUrl}?question=${encodeURIComponent(question)}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
 
                 if (!response.ok) {
                     throw new Error(`Erreur HTTP: ${response.status}`);
                 }
 
-                // Obtenir le texte brut de la réponse
-                const responseText = await response.text();
-                console.log("Réponse brute de l'API:", responseText);
+                // Parser le JSON
+                const data = await response.json();
+                console.log("Réponse JSON reçue:", data);
 
-                // Extraire la réponse du format "response `message`"
-                let extractedResponse = this.extractResponseFromText(responseText);
+                // Extraire le contenu de la réponse
+                const responseText = data.response || data.answer || data.message || 
+                                   "Je n'ai pas pu comprendre la réponse de l'assistant.";
 
-                console.log("Réponse extraite:", extractedResponse);
+                console.log("Texte à afficher:", responseText);
 
                 // Ajouter la réponse au chat
                 this.messages.push({
                     type: "bot",
-                    text: extractedResponse,
+                    text: responseText,
                     time: this.getCurrentTime()
                 });
 
                 // Réactiver la connexion si elle était désactivée
                 if (!this.isConnected) {
                     this.isConnected = true;
+                    this.errorMessage = "";
                 }
 
             } catch (error) {
@@ -195,112 +199,29 @@ export default {
                 this.isConnected = false;
 
                 // Message d'erreur
-                this.errorMessage = `Impossible de se connecter à l'assistant. L'API est hors ligne ou inaccessible.`;
+                this.errorMessage = "L'assistant est temporairement indisponible.";
 
-                // Optionnel : ajouter un message de secours
+                // Message de secours
                 this.messages.push({
                     type: "bot",
-                    text: "Je suis désolé, je rencontre des difficultés techniques. Voici quelques informations utiles :\n\n• Gestion des congés : Consultez le module Congés\n• Employés : Accédez à la liste des employés\n• Postes : Voir les postes disponibles\n• Contactez le support pour plus d'aide",
+                    text: "Je suis désolé, je rencontre des difficultés de connexion. Voici quelques informations utiles :\n\n• Gestion des congés : Consultez le module Congés\n• Employés : Accédez à la liste des employés\n• Postes : Voir les postes disponibles",
                     time: this.getCurrentTime()
                 });
             }
-        },
-
-        // Méthode pour extraire la réponse du format texte
-        extractResponseFromText(text) {
-            // Vérifier si le texte correspond au format "response `message`"
-            const pattern = /response\s+`([^`]+)`/;
-            const match = text.match(pattern);
-
-            if (match && match[1]) {
-                // Nettoyer et formater la réponse
-                return match[1]
-                    .replace(/\\n/g, '\n')  // Convertir \n en sauts de ligne réels
-                    .replace(/\\t/g, '  ')   // Convertir \t en espaces
-                    .trim();
-            }
-
-            // Si le format n'est pas reconnu, essayer d'autres patterns
-            if (text.includes('`')) {
-                // Essayer d'extraire tout ce qui est entre backticks
-                const backtickMatch = text.match(/`([^`]+)`/);
-                if (backtickMatch && backtickMatch[1]) {
-                    return backtickMatch[1]
-                        .replace(/\\n/g, '\n')
-                        .replace(/\\t/g, '  ')
-                        .trim();
-                }
-            }
-
-            // Si aucun pattern ne correspond, retourner le texte tel quel
-            return text
-                .replace(/\\n/g, '\n')
-                .replace(/\\t/g, '  ')
-                .trim();
-        },
-
-        // Méthode alternative si l'API retourne du JSON
-        async getAIResponseJSON(question) {
-            try {
-                const response = await fetch(this.apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        question: question,
-                        context: "ERP RH"
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                let responseText;
-                if (data.response) {
-                    responseText = data.response;
-                } else if (data.answer) {
-                    responseText = data.answer;
-                } else if (data.message) {
-                    responseText = data.message;
-                } else {
-                    responseText = "Réponse de l'assistant.";
-                }
-
-                this.messages.push({
-                    type: "bot",
-                    text: responseText,
-                    time: this.getCurrentTime()
-                });
-
-            } catch (error) {
-                console.error("Erreur API:", error);
-                this.handleApiError();
-            }
-        },
-
-        handleApiError() {
-            this.isConnected = false;
-            this.errorMessage = "Service temporairement indisponible";
-
-            // Réessayer après 30 secondes
-            setTimeout(() => {
-                this.testConnection();
-            }, 30000);
         },
 
         async testConnection() {
             try {
                 const response = await fetch(`${this.apiUrl}?question=test`);
                 if (response.ok) {
-                    this.isConnected = true;
-                    this.errorMessage = "";
+                    const data = await response.json();
+                    if (data.response || data.answer || data.message) {
+                        this.isConnected = true;
+                        this.errorMessage = "";
+                    }
                 }
             } catch (error) {
-                console.log("Connexion toujours indisponible");
+                console.log("Connexion indisponible");
             }
         },
 
@@ -310,7 +231,6 @@ export default {
                 this.$nextTick(() => {
                     this.scrollToBottom();
                 });
-                // Tester la connexion quand on ouvre le chat
                 this.testConnection();
             }
         },
@@ -332,7 +252,6 @@ export default {
         }
     },
     mounted() {
-        // Fermer le chat en cliquant à l'extérieur
         document.addEventListener('click', (event) => {
             const helpAI = this.$el;
             if (this.isOpen && !helpAI.contains(event.target)) {
@@ -340,7 +259,6 @@ export default {
             }
         });
 
-        // Tester la connexion au démarrage
         this.testConnection();
     }
 };
