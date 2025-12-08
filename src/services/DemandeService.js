@@ -147,17 +147,32 @@ const DemandeService = {
 
     // Mettre à jour les dates d'une demande
     async updateDates(id, dateDebut, dateFin) {
-        try {
-            const response = await apiClient.put(`/demandes/${id}/dates`, {
-                debut: dateDebut,
-                fin: dateFin
-            });
-            return response.data;
-        } catch (error) {
-            console.error(`Erreur lors de la mise à jour des dates:`, error);
-            throw error.response?.data || error;
-        }
+    try {
+        // Convertir en Date
+        const dDebut = new Date(dateDebut);
+        const dFin = new Date(dateFin);
+
+        // Ajouter 1 jour
+        dDebut.setDate(dDebut.getDate() + 1);
+        dFin.setDate(dFin.getDate() + 1);
+
+        // Reformatage en YYYY-MM-DD
+        const newDebut = dDebut.toISOString().split('T')[0];
+        const newFin = dFin.toISOString().split('T')[0];
+
+        const response = await apiClient.put(`/demandes/${id}/dates`, {
+            debut: newDebut,
+            fin: newFin
+        });
+
+        return response.data;
+
+    } catch (error) {
+        console.error(`Erreur lors de la mise à jour des dates:`, error);
+        throw error.response?.data || error;
     }
+}
+
 
 };
 
