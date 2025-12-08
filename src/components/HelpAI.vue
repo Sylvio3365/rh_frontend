@@ -16,12 +16,12 @@
                 <div class="chat-header">
                     <div class="flex items-center space-x-3">
                         <div
-                            class="w-8 h-8 bg-gradient-to-r from-primary to-purple-600 rounded-full flex items-center justify-center">
-                            <Icon icon="fluent:bot-24-regular" class="text-white text-sm" />
+                            class="w-10 h-10 bg-gradient-to-r from-primary to-purple-600 rounded-full flex items-center justify-center">
+                            <Icon icon="fluent:bot-24-regular" class="text-white text-lg" />
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-900 dark:text-white">Assistant RH</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                            <h3 class="font-semibold text-lg text-gray-900 dark:text-white">Assistant RH</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
                                 {{ isConnected ? 'En ligne' : 'Hors ligne' }}
                                 <span :class="isConnected ? 'text-green-500' : 'text-red-500'">•</span>
                             </p>
@@ -29,7 +29,7 @@
                     </div>
                     <button @click="toggleChat"
                         class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                        <Icon icon="heroicons:x-mark-20-solid" class="text-xl" />
+                        <Icon icon="heroicons:x-mark-20-solid" class="text-2xl" />
                     </button>
                 </div>
 
@@ -38,13 +38,19 @@
                     <div v-for="(message, index) in messages" :key="index" :class="['message', message.type]">
                         <div v-if="message.type === 'bot'" class="message-avatar">
                             <div
-                                class="w-6 h-6 bg-gradient-to-r from-primary to-purple-600 rounded-full flex items-center justify-center">
-                                <Icon icon="fluent:bot-24-regular" class="text-white text-xs" />
+                                class="w-8 h-8 bg-gradient-to-r from-primary to-purple-600 rounded-full flex items-center justify-center">
+                                <Icon icon="fluent:bot-24-regular" class="text-white text-sm" />
                             </div>
                         </div>
                         <div class="message-content">
                             <div :class="['message-bubble', message.type === 'user' ? 'user-bubble' : 'bot-bubble']">
-                                {{ message.text }}
+                                <!-- Rendu des URLs cliquables -->
+                                <div v-if="message.type === 'bot' && containsURL(message.text)"
+                                    class="rich-text-content" v-html="formatMessageWithLinks(message.text)">
+                                </div>
+                                <div v-else>
+                                    {{ message.text }}
+                                </div>
                             </div>
                             <span class="message-time">{{ message.time }}</span>
                         </div>
@@ -54,8 +60,8 @@
                     <div v-if="isTyping" class="message bot">
                         <div class="message-avatar">
                             <div
-                                class="w-6 h-6 bg-gradient-to-r from-primary to-purple-600 rounded-full flex items-center justify-center">
-                                <Icon icon="fluent:bot-24-regular" class="text-white text-xs" />
+                                class="w-8 h-8 bg-gradient-to-r from-primary to-purple-600 rounded-full flex items-center justify-center">
+                                <Icon icon="fluent:bot-24-regular" class="text-white text-sm" />
                             </div>
                         </div>
                         <div class="message-content">
@@ -71,8 +77,8 @@
                     <div v-if="errorMessage" class="message bot">
                         <div class="message-avatar">
                             <div
-                                class="w-6 h-6 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
-                                <Icon icon="heroicons:exclamation-triangle-20-solid" class="text-white text-xs" />
+                                class="w-8 h-8 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center">
+                                <Icon icon="heroicons:exclamation-triangle-20-solid" class="text-white text-sm" />
                             </div>
                         </div>
                         <div class="message-content">
@@ -88,17 +94,17 @@
                     <div class="relative">
                         <input v-model="userInput" @keypress.enter="sendMessage" type="text"
                             placeholder="Posez votre question..."
-                            class="w-full p-3 pr-12 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                            class="w-full p-4 pr-14 text-base border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl focus:outline-none focus:ring-3 focus:ring-primary focus:border-transparent dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                             :disabled="isTyping || !isConnected" />
                         <button @click="sendMessage" :disabled="!userInput.trim() || isTyping || !isConnected"
-                            class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-primary hover:text-primary/80 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors">
-                            <Icon icon="heroicons:paper-airplane-20-solid" class="text-xl" />
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2.5 text-primary hover:text-primary/80 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors">
+                            <Icon icon="heroicons:paper-airplane-20-solid" class="text-2xl" />
                         </button>
                     </div>
-                    <p v-if="!isConnected" class="text-xs text-red-500 dark:text-red-400 mt-2 text-center">
+                    <p v-if="!isConnected" class="text-sm text-red-500 dark:text-red-400 mt-3 text-center">
                         ⚠️ L'assistant est temporairement hors ligne
                     </p>
-                    <p v-else class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                    <p v-else class="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
                         Assistant IA • Connexion active à l'API
                     </p>
                 </div>
@@ -122,7 +128,7 @@ export default {
             isTyping: false,
             isConnected: true,
             errorMessage: "",
-            apiUrl: "http://127.0.0.1:2025/ask/",
+            apiUrl: "http://127.0.0.1:2026/ask/",
             messages: [
                 {
                     type: "bot",
@@ -174,8 +180,8 @@ export default {
                 console.log("Réponse JSON reçue:", data);
 
                 // Extraire le contenu de la réponse
-                const responseText = data.response || data.answer || data.message || 
-                                   "Je n'ai pas pu comprendre la réponse de l'assistant.";
+                const responseText = data.response || data.answer || data.message ||
+                    "Je n'ai pas pu comprendre la réponse de l'assistant.";
 
                 console.log("Texte à afficher:", responseText);
 
@@ -208,6 +214,26 @@ export default {
                     time: this.getCurrentTime()
                 });
             }
+        },
+
+        // Vérifie si le texte contient une URL
+        containsURL(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return urlRegex.test(text);
+        },
+
+        // Formate le texte pour rendre les URLs cliquables
+        formatMessageWithLinks(text) {
+            if (!text) return text;
+
+            // Remplacer les URLs par des liens cliquables
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const formattedText = text.replace(urlRegex, (url) => {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline font-medium">${url}</a>`;
+            });
+
+            // Remplacer les retours à la ligne par des balises <br>
+            return formattedText.replace(/\n/g, '<br>');
         },
 
         async testConnection() {
@@ -267,44 +293,44 @@ export default {
 <style scoped>
 .help-ai-container {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 30px;
+    right: 30px;
     z-index: 10000;
 }
 
 .ai-chat-button {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     cursor: pointer;
     border: none;
     outline: none;
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 30px;
+    right: 30px;
     z-index: 10001;
 }
 
 .ai-chat-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transform: scale(1.08);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
 .ai-chat-window {
     position: fixed;
-    bottom: 90px;
-    right: 20px;
-    width: 380px;
-    height: 500px;
+    bottom: 120px;
+    right: 30px;
+    width: 480px;
+    height: 650px;
     background: white;
     border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -320,7 +346,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px;
+    padding: 20px 24px;
     border-bottom: 1px solid #e5e7eb;
     background: #f9fafb;
 }
@@ -332,11 +358,11 @@ export default {
 
 .chat-messages {
     flex: 1;
-    padding: 16px;
+    padding: 20px 24px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
     background: white;
 }
 
@@ -346,7 +372,7 @@ export default {
 
 .message {
     display: flex;
-    gap: 8px;
+    gap: 12px;
 }
 
 .message.user {
@@ -359,14 +385,14 @@ export default {
 
 .message-avatar {
     flex-shrink: 0;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 .message-content {
-    max-width: 80%;
+    max-width: 85%;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .message.user .message-content {
@@ -374,34 +400,60 @@ export default {
 }
 
 .message-bubble {
-    padding: 12px 16px;
-    border-radius: 18px;
-    line-height: 1.4;
+    padding: 14px 18px;
+    border-radius: 20px;
+    line-height: 1.5;
     white-space: pre-line;
     word-wrap: break-word;
+    font-size: 15px;
 }
 
 .user-bubble {
     background: #4f46e5;
     color: white;
-    border-bottom-right-radius: 6px;
+    border-bottom-right-radius: 8px;
 }
 
 .bot-bubble {
     background: #f3f4f6;
     color: #374151;
-    border-bottom-left-radius: 6px;
+    border-bottom-left-radius: 8px;
+}
+
+.dark .bot-bubble {
+    background: #374151;
+    color: #f3f4f6;
+}
+
+/* Style pour le contenu riche avec liens */
+.rich-text-content {
+    line-height: 1.6;
+}
+
+.rich-text-content a {
+    color: #4f46e5;
+    text-decoration: underline;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.rich-text-content a:hover {
+    color: #4338ca;
+}
+
+.dark .rich-text-content a {
+    color: #818cf8;
+}
+
+.dark .rich-text-content a:hover {
+    color: #6366f1;
 }
 
 .error-bubble {
     background: #fee2e2;
     color: #dc2626;
     border: 1px solid #fca5a5;
-}
-
-.dark .bot-bubble {
-    background: #374151;
-    color: #f3f4f6;
+    font-size: 14px;
 }
 
 .dark .error-bubble {
@@ -411,20 +463,21 @@ export default {
 }
 
 .message-time {
-    font-size: 11px;
+    font-size: 12px;
     color: #9ca3af;
+    padding: 0 4px;
 }
 
 .typing-indicator {
     display: flex;
-    gap: 4px;
+    gap: 5px;
     align-items: center;
-    padding: 12px 20px;
+    padding: 14px 20px;
 }
 
 .typing-indicator span {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: #9ca3af;
     animation: typing 1.4s infinite ease-in-out;
@@ -451,12 +504,12 @@ export default {
     }
 
     30% {
-        transform: translateY(-4px);
+        transform: translateY(-5px);
     }
 }
 
 .chat-input {
-    padding: 16px;
+    padding: 20px 24px;
     border-top: 1px solid #e5e7eb;
     background: #f9fafb;
 }
@@ -469,27 +522,27 @@ export default {
 /* Animations */
 .chat-slide-enter-active,
 .chat-slide-leave-active {
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chat-slide-enter-from {
     opacity: 0;
-    transform: translateY(20px) scale(0.9);
+    transform: translateY(30px) scale(0.95);
 }
 
 .chat-slide-leave-to {
     opacity: 0;
-    transform: translateY(20px) scale(0.9);
+    transform: translateY(30px) scale(0.95);
 }
 
 /* Scrollbar personnalisée */
 .chat-messages::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .chat-messages::-webkit-scrollbar-track {
     background: #f1f1f1;
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .dark .chat-messages::-webkit-scrollbar-track {
@@ -498,7 +551,7 @@ export default {
 
 .chat-messages::-webkit-scrollbar-thumb {
     background: #c5c5c5;
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover {
@@ -514,22 +567,42 @@ export default {
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     .ai-chat-window {
-        width: calc(100vw - 40px);
-        right: 20px;
-        left: 20px;
+        width: calc(100vw - 60px);
+        height: 550px;
+        right: 30px;
+        left: 30px;
     }
 
     .ai-chat-button {
         bottom: 20px;
         right: 20px;
+        width: 60px;
+        height: 60px;
     }
 
     .ai-chat-window {
-        bottom: 90px;
+        bottom: 100px;
         right: 20px;
         left: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ai-chat-window {
+        width: calc(100vw - 40px);
+        height: 500px;
+        right: 20px;
+        left: 20px;
+    }
+
+    .chat-messages {
+        padding: 16px;
+    }
+
+    .chat-input {
+        padding: 16px;
     }
 }
 </style>
